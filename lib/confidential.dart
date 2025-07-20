@@ -18,5 +18,7 @@ export 'src/obfuscation/encryption/encryption.dart';
 export 'src/obfuscation/obfuscated.dart';
 // Core obfuscation functionality
 export 'src/obfuscation/obfuscation.dart';
+// Secret container
+export 'src/obfuscation/secret.dart';
 // Randomization implementations
 export 'src/obfuscation/randomization/randomization.dart';
