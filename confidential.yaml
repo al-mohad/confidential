@@ -1,0 +1,42 @@
+# Example configuration for dart-confidential
+# WARNING: This algorithm is for example only - do not use in production!
+
+algorithm:
+  - encrypt using aes-192-gcm
+  - shuffle
+
+defaultNamespace: create Secrets
+defaultAccessModifier: internal
+
+secrets:
+  - name: apiKey
+    value: "214C1E2E-A87E-4460-8205-4562FDF54D1C"
+    
+  - name: suspiciousDynamicLibraries
+    value:
+      - "Substrate"
+      - "Substitute" 
+      - "FridaGadget"
+      - "libcycript"
+      - "libhooker"
+    
+  - name: suspiciousFilePaths
+    value:
+      - "/.installed_unc0ver"
+      - "/usr/sbin/frida-server"
+      - "/private/var/lib/cydia"
+      - "/Applications/Cydia.app"
+      - "/usr/bin/cycript"
+    
+  - name: trustedSPKIDigests
+    value:
+      - "7a6820614ee600bbaed493522c221c0d9095f3b4d7839415ffab16cbf61767ad"
+      - "cf84a70a41072a42d0f25580b5cb54d6a9de45db824bbb7ba85d541b099fd49f"
+      - "c1a5d45809269301993d028313a5c4a5d8b2f56de9725d4d1af9da1ccf186f30"
+    namespace: extend Pinning from Crypto
+    accessModifier: public
+    
+  - name: secretVaultKeyTag
+    value: "com.example.app.keys.secret_vault_private_key"
+    namespace: extend KeychainAccess.Key from Crypto
+    accessModifier: internal

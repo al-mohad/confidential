@@ -1,0 +1,5 @@
+targets:
+  $default:
+    builders:
+      confidential|confidential_builder:
+        enabled: true
