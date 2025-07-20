@@ -1,7 +1,7 @@
 /// Configuration system for obfuscation.
 library;
 
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'dart:html';
 
 import 'package:yaml/yaml.dart';
 
@@ -41,13 +41,23 @@ class ConfidentialConfiguration {
 
   /// Loads configuration from a YAML file.
   static ConfidentialConfiguration fromFile(String path) {
-    final file = File(path);
-    if (!file.existsSync()) {
-      throw ConfigurationException('Configuration file not found: $path');
-    }
-
-    final content = file.readAsStringSync();
+    final content = _readFileSync(path);
     return fromYaml(content);
+  }
+
+  /// Platform-specific file reading
+  static String _readFileSync(String path) {
+    // This method is only used in CLI/server environments, not web
+    // Web environments should use fromYaml directly with pre-loaded content
+    try {
+      final file = File(path);
+      if (!file.existsSync()) {
+        throw ConfigurationException('Configuration file not found: $path');
+      }
+      return file.readAsStringSync();
+    } catch (e) {
+      throw ConfigurationException('Failed to read configuration file: $e');
+    }
   }
 
   /// Loads configuration from YAML content.

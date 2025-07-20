@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-01-20
+
+### Fixed
+- Added Apache-2.0 license field to pubspec.yaml for proper pub.dev recognition
+- Removed unused `_generateNonce` method to eliminate static analysis warnings
+- Removed unnecessary null assertion operators in compression module
+- Fixed web platform compatibility by removing dart:io exports from main library
+
+### Changed
+- **BREAKING**: CLI and configuration modules no longer exported from main library
+- Updated dependencies to latest versions (archive ^4.0.7, build ^3.0.0, pointycastle ^4.0.0)
+- Improved static analysis score and pub.dev compatibility
+
+### Note
+- CLI and configuration can still be imported directly when needed in non-web environments
+- Package now supports web deployment while maintaining full CLI functionality
+
 ## [0.4.0] - 2025-01-20
 
 ### Added

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:confidential/confidential.dart';
+import 'package:confidential/src/configuration/configuration.dart';
 import 'package:test/test.dart';
 
 void main() {

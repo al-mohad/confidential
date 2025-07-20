@@ -5,6 +5,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
+
 import '../obfuscation.dart';
 
 /// Base class for compression-based obfuscation.
@@ -18,10 +19,10 @@ abstract class CompressionAlgorithm extends ObfuscationAlgorithm {
 /// Zlib compression algorithm.
 class ZlibCompression extends CompressionAlgorithm {
   const ZlibCompression() : super();
-  
+
   @override
   String get name => 'zlib';
-  
+
   @override
   Uint8List obfuscate(Uint8List data, int nonce) {
     try {
@@ -31,7 +32,7 @@ class ZlibCompression extends CompressionAlgorithm {
       throw ObfuscationException('Zlib compression failed', e);
     }
   }
-  
+
   @override
   Uint8List deobfuscate(Uint8List data, int nonce) {
     try {
@@ -47,20 +48,20 @@ class ZlibCompression extends CompressionAlgorithm {
 /// GZip compression algorithm.
 class GZipCompression extends CompressionAlgorithm {
   const GZipCompression() : super();
-  
+
   @override
   String get name => 'gzip';
-  
+
   @override
   Uint8List obfuscate(Uint8List data, int nonce) {
     try {
       final compressed = GZipEncoder().encode(data);
-      return _addPolymorphicMask(Uint8List.fromList(compressed!), nonce);
+      return _addPolymorphicMask(Uint8List.fromList(compressed), nonce);
     } catch (e) {
       throw ObfuscationException('GZip compression failed', e);
     }
   }
-  
+
   @override
   Uint8List deobfuscate(Uint8List data, int nonce) {
     try {
@@ -76,10 +77,10 @@ class GZipCompression extends CompressionAlgorithm {
 /// BZip2 compression algorithm.
 class BZip2Compression extends CompressionAlgorithm {
   const BZip2Compression() : super();
-  
+
   @override
   String get name => 'bzip2';
-  
+
   @override
   Uint8List obfuscate(Uint8List data, int nonce) {
     try {
@@ -89,7 +90,7 @@ class BZip2Compression extends CompressionAlgorithm {
       throw ObfuscationException('BZip2 compression failed', e);
     }
   }
-  
+
   @override
   Uint8List deobfuscate(Uint8List data, int nonce) {
     try {
@@ -105,10 +106,10 @@ class BZip2Compression extends CompressionAlgorithm {
 /// LZ4 compression algorithm (simplified implementation).
 class LZ4Compression extends CompressionAlgorithm {
   const LZ4Compression() : super();
-  
+
   @override
   String get name => 'lz4';
-  
+
   @override
   Uint8List obfuscate(Uint8List data, int nonce) {
     try {
@@ -120,7 +121,7 @@ class LZ4Compression extends CompressionAlgorithm {
       throw ObfuscationException('LZ4 compression failed', e);
     }
   }
-  
+
   @override
   Uint8List deobfuscate(Uint8List data, int nonce) {
     try {
@@ -131,12 +132,12 @@ class LZ4Compression extends CompressionAlgorithm {
       throw ObfuscationException('LZ4 decompression failed', e);
     }
   }
-  
+
   Uint8List _simpleLZ4Compress(Uint8List data) {
     // Simplified compression - just use GZip as placeholder
-    return Uint8List.fromList(GZipEncoder().encode(data)!);
+    return Uint8List.fromList(GZipEncoder().encode(data));
   }
-  
+
   Uint8List _simpleLZ4Decompress(Uint8List data) {
     // Simplified decompression - just use GZip as placeholder
     return Uint8List.fromList(GZipDecoder().decodeBytes(data));
@@ -149,40 +150,40 @@ extension _PolymorphicMasking on CompressionAlgorithm {
   Uint8List _addPolymorphicMask(Uint8List data, int nonce) {
     final random = Random(nonce);
     final mask = Uint8List(data.length);
-    
+
     for (int i = 0; i < data.length; i++) {
       mask[i] = random.nextInt(256);
     }
-    
+
     final masked = Uint8List(data.length + 4); // 4 bytes for length prefix
     masked.setRange(0, 4, _intToBytes(data.length));
-    
+
     for (int i = 0; i < data.length; i++) {
       masked[i + 4] = data[i] ^ mask[i];
     }
-    
+
     return masked;
   }
-  
+
   /// Removes polymorphic masking to restore original compressed data.
   Uint8List _removePolymorphicMask(Uint8List data, int nonce) {
     final random = Random(nonce);
     final length = _bytesToInt(data.sublist(0, 4));
     final maskedData = data.sublist(4);
-    
+
     final mask = Uint8List(length);
     for (int i = 0; i < length; i++) {
       mask[i] = random.nextInt(256);
     }
-    
+
     final unmasked = Uint8List(length);
     for (int i = 0; i < length; i++) {
       unmasked[i] = maskedData[i] ^ mask[i];
     }
-    
+
     return unmasked;
   }
-  
+
   Uint8List _intToBytes(int value) {
     return Uint8List(4)
       ..[0] = (value >> 24) & 0xFF
@@ -190,7 +191,7 @@ extension _PolymorphicMasking on CompressionAlgorithm {
       ..[2] = (value >> 8) & 0xFF
       ..[3] = value & 0xFF;
   }
-  
+
   int _bytesToInt(Uint8List bytes) {
     return (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3];
   }
@@ -219,7 +220,7 @@ class CompressionFactory {
         throw ObfuscationException('Unknown compression algorithm: $name');
     }
   }
-  
+
   /// Gets all supported compression algorithm names.
   static List<String> get supportedAlgorithms => [
     'zlib',
@@ -227,6 +228,6 @@ class CompressionFactory {
     'bzip2',
     'lz4',
     'lzfse', // Fallback to gzip
-    'lzma',  // Fallback to bzip2
+    'lzma', // Fallback to bzip2
   ];
 }

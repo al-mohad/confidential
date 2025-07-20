@@ -155,17 +155,7 @@ class ChaCha20Poly1305Encryption extends EncryptionAlgorithm {
     return key;
   }
 
-  Uint8List _generateNonce(int nonce) {
-    final nonceBytes = Uint8List(12); // ChaCha20 nonce size
-    // Add current time to make it truly polymorphic
-    final random = Random(nonce + DateTime.now().millisecondsSinceEpoch);
 
-    for (int i = 0; i < 12; i++) {
-      nonceBytes[i] = random.nextInt(256);
-    }
-
-    return nonceBytes;
-  }
 
   Uint8List _intToBytes(int value) {
     return Uint8List(4)

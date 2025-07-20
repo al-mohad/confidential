@@ -7,28 +7,29 @@ import 'package:args/args.dart';
 
 import '../code_generation/generator.dart';
 import '../configuration/configuration.dart';
+
 class ConfidentialCli {
-  static const String version = '0.4.0';
-  
+  static const String version = '0.4.1';
+
   /// Runs the CLI with the given arguments.
   static Future<int> run(List<String> arguments) async {
     final parser = _createArgParser();
-    
+
     try {
       final results = parser.parse(arguments);
-      
+
       if (results['help'] as bool) {
         _printUsage(parser);
         return 0;
       }
-      
+
       if (results['version'] as bool) {
         print('dart-confidential version $version');
         return 0;
       }
-      
+
       final command = results.rest.isNotEmpty ? results.rest.first : null;
-      
+
       switch (command) {
         case 'obfuscate':
           return await _runObfuscate(results);
@@ -46,7 +47,7 @@ class ConfidentialCli {
       return 1;
     }
   }
-  
+
   static ArgParser _createArgParser() {
     return ArgParser()
       ..addFlag(
@@ -74,9 +75,11 @@ class ConfidentialCli {
         valueHelp: 'FILE',
       );
   }
-  
+
   static void _printUsage(ArgParser parser) {
-    print('Dart literals obfuscator to defend against static reverse engineering.');
+    print(
+      'Dart literals obfuscator to defend against static reverse engineering.',
+    );
     print('');
     print('Usage: dart-confidential <command> [options]');
     print('');
@@ -87,37 +90,43 @@ class ConfidentialCli {
     print(parser.usage);
     print('');
     print('Examples:');
-    print('  dart-confidential obfuscate -c confidential.yaml -o lib/generated/confidential.dart');
-    print('  dart-confidential obfuscate --configuration config.yaml --output output.dart');
+    print(
+      '  dart-confidential obfuscate -c confidential.yaml -o lib/generated/confidential.dart',
+    );
+    print(
+      '  dart-confidential obfuscate --configuration config.yaml --output output.dart',
+    );
   }
-  
+
   static Future<int> _runObfuscate(ArgResults results) async {
     final configPath = results['configuration'] as String?;
     final outputPath = results['output'] as String?;
-    
+
     if (configPath == null) {
-      stderr.writeln('Error: Configuration file is required (use -c or --configuration)');
+      stderr.writeln(
+        'Error: Configuration file is required (use -c or --configuration)',
+      );
       return 1;
     }
-    
+
     if (outputPath == null) {
       stderr.writeln('Error: Output file is required (use -o or --output)');
       return 1;
     }
-    
+
     try {
       // Load configuration
       final config = ConfidentialConfiguration.fromFile(configPath);
-      
+
       // Generate code
       final generator = CodeGenerator(config);
       final generatedCode = generator.generate();
-      
+
       // Write output
       final outputFile = File(outputPath);
       await outputFile.parent.create(recursive: true);
       await outputFile.writeAsString(generatedCode);
-      
+
       print('Successfully generated obfuscated code: $outputPath');
       return 0;
     } catch (e) {

@@ -5,12 +5,8 @@
 /// analysis, making the app more resistant to reverse engineering.
 library;
 
-// Core obfuscation functionality
-export 'src/cli/cli.dart';
-// Code generation
-export 'src/code_generation/generator.dart';
-// Configuration system
-export 'src/configuration/configuration.dart';
+// Note: CLI and configuration modules are not exported for web compatibility
+// They can be imported directly when needed in non-web environments
 // Compression implementations
 export 'src/obfuscation/compression/compression.dart';
 // Encryption implementations
