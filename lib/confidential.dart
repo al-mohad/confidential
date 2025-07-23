@@ -14,6 +14,16 @@ export 'src/obfuscation/encryption/encryption.dart';
 export 'src/obfuscation/encryption/key_management.dart';
 export 'src/obfuscation/encryption/rsa_encryption.dart';
 export 'src/obfuscation/obfuscated.dart';
+
+// Extension methods for improved ergonomics
+export 'src/extensions/encryption_extensions.dart';
+
+// Asynchronous secret loading
+export 'src/async/secret_providers.dart';
+export 'src/async/async_obfuscated.dart';
+
+// Enhanced grouping and namespacing
+export 'src/grouping/secret_groups.dart';
 // Core obfuscation functionality
 export 'src/obfuscation/obfuscation.dart';
 // Randomization implementations
