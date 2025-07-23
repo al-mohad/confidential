@@ -273,6 +273,118 @@ algorithm:
   - shuffle
 ```
 
+## 🧼 Enhanced API Ergonomics
+
+### Extension Methods for Easy Encryption
+
+Dart Confidential now provides convenient extension methods for encrypting and obfuscating data directly:
+
+```dart
+// String encryption
+final secret = "Hello, World!".encrypt(algorithm: 'aes-256-gcm');
+final decrypted = secret.decryptAsString(algorithm: 'aes-256-gcm');
+
+// Direct obfuscation
+final obfuscated = "Secret Message".obfuscate(algorithm: 'aes-256-gcm');
+print(obfuscated.value); // or obfuscated.$
+
+// List and Map encryption
+final listSecret = ['item1', 'item2'].encrypt(algorithm: 'chacha20-poly1305');
+final mapSecret = {'key': 'value'}.encrypt(algorithm: 'rsa-2048');
+
+// Type-safe decryption
+final decryptedList = listSecret.decryptAsStringList(algorithm: 'chacha20-poly1305');
+final decryptedMap = mapSecret.decryptAsMap(algorithm: 'rsa-2048');
+
+// Advanced operations
+final mapped = obfuscated.map<int>((s) => s.length);
+final asyncValue = await obfuscated.getValueAsync();
+```
+
+### Enhanced Secret Grouping and Organization
+
+Organize your secrets with groups, tags, and environments:
+
+```yaml
+groups:
+  - name: apiSecrets
+    description: "API-related secrets"
+    namespace: create ApiSecrets
+    tags: ["api", "external"]
+    environment: production
+    secrets:
+      - name: apiKey
+        value: "secret-key-123"
+        tags: ["critical", "auth"]
+        priority: 10
+
+  - name: databaseSecrets
+    description: "Database credentials"
+    namespace: create DatabaseSecrets
+    tags: ["database", "internal"]
+    environment: production
+    secrets:
+      - name: connectionString
+        value: "postgresql://..."
+        tags: ["critical", "connection"]
+        priority: 10
+```
+
+### Asynchronous Secret Loading
+
+Load secrets from remote sources or files asynchronously:
+
+```dart
+// File-based provider
+final fileProvider = FileSecretProvider(basePath: '/secure/secrets');
+
+// HTTP-based provider
+final httpProvider = HttpSecretProvider(
+  baseUrl: 'https://vault.example.com',
+  headers: {'Authorization': 'Bearer token'},
+);
+
+// Composite provider (tries multiple sources)
+final provider = CompositeSecretProvider([fileProvider, httpProvider]);
+
+// Async obfuscated values
+final factory = AsyncObfuscatedFactory(provider: provider);
+final asyncSecret = factory.string('apiKey');
+
+// Load with caching and error handling
+final value = await asyncSecret.value;
+final valueOrDefault = await asyncSecret.getValueOrDefault('fallback');
+final valueWithTimeout = await asyncSecret.getValueWithTimeout(Duration(seconds: 5));
+
+// Stream updates
+asyncSecret.asStream(interval: Duration(minutes: 1))
+  .listen((value) => print('Updated: $value'));
+```
+
+### Advanced Secret Management
+
+```dart
+// Secret filtering and organization
+final manager = SecretGroupManager.fromYaml(config);
+
+// Filter by environment
+final prodSecrets = manager.getSecrets(SecretFilter.environment('production'));
+
+// Filter by tags
+final criticalSecrets = manager.getSecrets(SecretFilter.tags(['critical']));
+
+// Exclude deprecated secrets
+final activeSecrets = manager.getSecrets(SecretFilter.excludeDeprecated());
+
+// Complex filtering
+final filtered = manager.getSecrets(SecretFilter(
+  groups: ['api'],
+  tags: ['critical'],
+  environment: 'production',
+  excludeDeprecated: true,
+));
+```
+
 ## Usage
 
 ### Build Runner Integration (Recommended)

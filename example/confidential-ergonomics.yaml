@@ -1,0 +1,206 @@
+# Enhanced API ergonomics examples for dart-confidential
+# This file demonstrates the new extension methods, grouping, and async loading features
+
+algorithm:
+  - encrypt using aes-256-gcm
+  - shuffle
+
+defaultNamespace: create ErgonomicSecrets
+defaultAccessModifier: internal
+
+# Enhanced key management
+keyManagement:
+  enableRotation: true
+  rotationIntervalDays: 30
+  maxOldKeys: 3
+  keyDerivationFunction: PBKDF2
+  keyDerivationIterations: 100000
+  salt: "ergonomic-salt-example"
+
+# Secret groups for better organization
+groups:
+  - name: apiSecrets
+    description: "API-related secrets and configurations"
+    namespace: create ApiSecrets
+    accessModifier: internal
+    tags: ["api", "external"]
+    environment: production
+    secrets:
+      - name: apiKey
+        value: "api-key-placeholder"
+        tags: ["critical", "auth"]
+        description: "Primary API key for external service"
+        priority: 10
+        
+      - name: apiUrl
+        value: "https://api.example.com/v1"
+        tags: ["config", "endpoint"]
+        description: "Base URL for API endpoints"
+        priority: 8
+        
+      - name: apiTimeout
+        value: 30000
+        tags: ["config", "performance"]
+        description: "API timeout in milliseconds"
+        priority: 5
+
+  - name: databaseSecrets
+    description: "Database connection and authentication secrets"
+    namespace: create DatabaseSecrets
+    accessModifier: private
+    tags: ["database", "internal"]
+    environment: production
+    secrets:
+      - name: connectionString
+        value: "postgresql://user:pass@localhost:5432/mydb"
+        tags: ["critical", "connection"]
+        description: "Primary database connection string"
+        priority: 10
+        
+      - name: readOnlyConnectionString
+        value: "postgresql://readonly:pass@localhost:5432/mydb"
+        tags: ["connection", "readonly"]
+        description: "Read-only database connection string"
+        priority: 7
+        
+      - name: migrationKey
+        value: "migration-secret-key"
+        tags: ["migration", "admin"]
+        description: "Key for database migrations"
+        priority: 6
+
+  - name: authSecrets
+    description: "Authentication and authorization secrets"
+    namespace: create AuthSecrets
+    accessModifier: internal
+    tags: ["auth", "security"]
+    environment: production
+    secrets:
+      - name: jwtSecret
+        value: "jwt-signing-secret-key"
+        tags: ["critical", "jwt", "signing"]
+        description: "Secret key for JWT token signing"
+        priority: 10
+        
+      - name: refreshTokenSecret
+        value: "refresh-token-secret"
+        tags: ["critical", "refresh", "token"]
+        description: "Secret for refresh token generation"
+        priority: 9
+        
+      - name: passwordSalt
+        value: "password-hashing-salt"
+        tags: ["hashing", "password"]
+        description: "Salt for password hashing"
+        priority: 8
+
+  - name: thirdPartySecrets
+    description: "Third-party service integration secrets"
+    namespace: create ThirdPartySecrets
+    accessModifier: internal
+    tags: ["third-party", "integration"]
+    environment: production
+    secrets:
+      - name: stripeApiKey
+        value: "sk_test_stripe_key_placeholder"
+        tags: ["payment", "stripe", "critical"]
+        description: "Stripe API key for payment processing"
+        priority: 10
+        
+      - name: sendgridApiKey
+        value: "SG.sendgrid_key_placeholder"
+        tags: ["email", "sendgrid"]
+        description: "SendGrid API key for email services"
+        priority: 7
+        
+      - name: awsAccessKey
+        value: "AKIA_aws_access_key_placeholder"
+        tags: ["aws", "cloud", "critical"]
+        description: "AWS access key for cloud services"
+        priority: 9
+        
+      - name: awsSecretKey
+        value: "aws_secret_key_placeholder"
+        tags: ["aws", "cloud", "critical"]
+        description: "AWS secret key for cloud services"
+        priority: 9
+
+  - name: developmentSecrets
+    description: "Development and testing secrets"
+    namespace: create DevSecrets
+    accessModifier: internal
+    tags: ["development", "testing"]
+    environment: development
+    secrets:
+      - name: testApiKey
+        value: "test-api-key-123"
+        tags: ["testing", "api"]
+        description: "API key for testing environment"
+        priority: 5
+        
+      - name: debugToken
+        value: "debug-token-456"
+        tags: ["debug", "development"]
+        description: "Token for debug mode access"
+        priority: 3
+        
+      - name: mockServiceUrl
+        value: "http://localhost:3000/mock"
+        tags: ["mock", "testing"]
+        description: "URL for mock service in tests"
+        priority: 2
+
+# Enhanced namespace definitions with metadata
+namespaces:
+  ApiSecrets: "create ApiSecrets"
+  DatabaseSecrets: "create DatabaseSecrets"
+  AuthSecrets: "create AuthSecrets"
+  ThirdPartySecrets: "create ThirdPartySecrets"
+  DevSecrets: "create DevSecrets"
+
+# Namespace metadata for enhanced organization
+namespaceMetadata:
+  ApiSecrets:
+    group: "external"
+    description: "External API integration secrets"
+    internal: false
+    dependencies: []
+    
+  DatabaseSecrets:
+    group: "infrastructure"
+    description: "Database and storage secrets"
+    internal: true
+    dependencies: []
+    
+  AuthSecrets:
+    group: "security"
+    description: "Authentication and authorization"
+    internal: true
+    dependencies: ["DatabaseSecrets"]
+    
+  ThirdPartySecrets:
+    group: "external"
+    description: "Third-party service integrations"
+    internal: false
+    dependencies: ["AuthSecrets"]
+    
+  DevSecrets:
+    group: "development"
+    description: "Development and testing utilities"
+    internal: true
+    dependencies: []
+
+# Traditional secrets (for backward compatibility)
+secrets:
+  - name: legacySecret
+    value: "legacy-secret-value"
+    namespace: create LegacySecrets
+    accessModifier: internal
+    
+  - name: globalConfig
+    value:
+      appName: "MyApp"
+      version: "1.0.0"
+      environment: "production"
+    namespace: create GlobalConfig
+    accessModifier: public

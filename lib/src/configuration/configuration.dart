@@ -6,6 +6,7 @@ import 'dart:io' if (dart.library.html) 'dart:html';
 import 'package:confidential/src/obfuscation/encryption/key_management.dart';
 import 'package:yaml/yaml.dart';
 
+import '../grouping/secret_groups.dart';
 import '../obfuscation/compression/compression.dart';
 import '../obfuscation/encryption/encryption.dart';
 import '../obfuscation/obfuscation.dart';
@@ -34,6 +35,9 @@ class ConfidentialConfiguration {
   /// Key management configuration.
   final KeyManagementConfig? keyManagement;
 
+  /// Secret group manager for enhanced organization.
+  final SecretGroupManager? groupManager;
+
   const ConfidentialConfiguration({
     required this.algorithm,
     this.defaultAccessModifier = 'internal',
@@ -42,6 +46,7 @@ class ConfidentialConfiguration {
     this.internalImport = false,
     required this.secrets,
     this.keyManagement,
+    this.groupManager,
   });
 
   /// Loads configuration from a YAML file.
@@ -93,6 +98,14 @@ class ConfidentialConfiguration {
         );
       }
 
+      // Parse group manager configuration if present
+      SecretGroupManager? groupManager;
+      if (yaml.containsKey('groups') || yaml.containsKey('namespaces')) {
+        groupManager = SecretGroupManager.fromYaml(
+          yaml.cast<String, dynamic>(),
+        );
+      }
+
       return ConfidentialConfiguration(
         algorithm: algorithm,
         defaultAccessModifier:
@@ -103,6 +116,7 @@ class ConfidentialConfiguration {
         internalImport: yaml['internalImport'] as bool? ?? false,
         secrets: secrets,
         keyManagement: keyManagement,
+        groupManager: groupManager,
       );
     } catch (e) {
       throw ConfigurationException('Failed to parse configuration: $e');
