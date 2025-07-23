@@ -2,11 +2,20 @@
 # WARNING: This algorithm is for example only - do not use in production!
 
 algorithm:
-  - encrypt using aes-192-gcm
+  - encrypt using aes-256-gcm
   - shuffle
 
 defaultNamespace: create Secrets
 defaultAccessModifier: internal
+
+# Enhanced encryption with key management
+keyManagement:
+  enableRotation: true
+  rotationIntervalDays: 30
+  maxOldKeys: 3
+  keyDerivationFunction: PBKDF2
+  keyDerivationIterations: 100000
+  salt: "your-unique-salt-here"
 
 secrets:
   - name: apiKey

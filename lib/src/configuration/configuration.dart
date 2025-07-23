@@ -3,6 +3,7 @@ library;
 
 import 'dart:io' if (dart.library.html) 'dart:html';
 
+import 'package:confidential/src/obfuscation/encryption/key_management.dart';
 import 'package:yaml/yaml.dart';
 
 import '../obfuscation/compression/compression.dart';
@@ -30,6 +31,9 @@ class ConfidentialConfiguration {
   /// The list of secrets to obfuscate.
   final List<SecretDefinition> secrets;
 
+  /// Key management configuration.
+  final KeyManagementConfig? keyManagement;
+
   const ConfidentialConfiguration({
     required this.algorithm,
     this.defaultAccessModifier = 'internal',
@@ -37,6 +41,7 @@ class ConfidentialConfiguration {
     this.experimentalMode = false,
     this.internalImport = false,
     required this.secrets,
+    this.keyManagement,
   });
 
   /// Loads configuration from a YAML file.
@@ -79,6 +84,15 @@ class ConfidentialConfiguration {
           .map((s) => SecretDefinition.fromYaml(s))
           .toList();
 
+      // Parse key management configuration if present
+      KeyManagementConfig? keyManagement;
+      final keyMgmtYaml = yaml['keyManagement'] as Map?;
+      if (keyMgmtYaml != null) {
+        keyManagement = KeyManagementConfig.fromMap(
+          keyMgmtYaml.cast<String, dynamic>(),
+        );
+      }
+
       return ConfidentialConfiguration(
         algorithm: algorithm,
         defaultAccessModifier:
@@ -88,6 +102,7 @@ class ConfidentialConfiguration {
         experimentalMode: yaml['experimentalMode'] as bool? ?? false,
         internalImport: yaml['internalImport'] as bool? ?? false,
         secrets: secrets,
+        keyManagement: keyManagement,
       );
     } catch (e) {
       throw ConfigurationException('Failed to parse configuration: $e');
@@ -97,21 +112,30 @@ class ConfidentialConfiguration {
   /// Creates the obfuscation algorithm from the configuration.
   Obfuscation createObfuscation() {
     final steps = <ObfuscationAlgorithm>[];
+    KeyManager? keyManager;
+
+    // Create key manager if key management is configured
+    if (keyManagement != null) {
+      keyManager = KeyManager(keyManagement!);
+    }
 
     for (final step in algorithm) {
-      final algorithm = _parseAlgorithmStep(step);
+      final algorithm = _parseAlgorithmStep(step, keyManager);
       steps.add(algorithm);
     }
 
     return Obfuscation(steps);
   }
 
-  ObfuscationAlgorithm _parseAlgorithmStep(String step) {
+  ObfuscationAlgorithm _parseAlgorithmStep(
+    String step,
+    KeyManager? keyManager,
+  ) {
     final parts = step.toLowerCase().split(' ');
 
     if (parts.length >= 3 && parts[0] == 'encrypt' && parts[1] == 'using') {
       final algorithm = parts.sublist(2).join('-');
-      return EncryptionFactory.create(algorithm);
+      return EncryptionFactory.create(algorithm, keyManager: keyManager);
     }
 
     if (parts.length >= 3 && parts[0] == 'compress' && parts[1] == 'using') {

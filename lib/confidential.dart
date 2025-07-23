@@ -11,10 +11,12 @@ library;
 export 'src/obfuscation/compression/compression.dart';
 // Encryption implementations
 export 'src/obfuscation/encryption/encryption.dart';
+export 'src/obfuscation/encryption/key_management.dart';
+export 'src/obfuscation/encryption/rsa_encryption.dart';
 export 'src/obfuscation/obfuscated.dart';
 // Core obfuscation functionality
 export 'src/obfuscation/obfuscation.dart';
-// Secret container
-export 'src/obfuscation/secret.dart';
 // Randomization implementations
 export 'src/obfuscation/randomization/randomization.dart';
+// Secret container
+export 'src/obfuscation/secret.dart';

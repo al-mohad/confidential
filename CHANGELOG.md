@@ -5,6 +5,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-01-23
+
+### 🔒 Added - Enhanced Encryption Support
+- **RSA Encryption**: Added support for RSA-2048 and RSA-4096 with OAEP padding
+  - `rsa-2048`, `rsa-4096` with default SHA-256
+  - `rsa-2048-sha256`, `rsa-4096-sha256`, `rsa-2048-sha512`, `rsa-4096-sha512`
+  - Hybrid encryption for large data (RSA + AES-GCM)
+- **Enhanced ChaCha20-Poly1305**: Replaced XOR placeholder with proper authenticated encryption
+  - Full AEAD (Authenticated Encryption with Associated Data) implementation
+  - Constant-time tag verification for security
+  - Proper ChaCha20 stream cipher with Poly1305 MAC
+- **Advanced Key Management System**:
+  - Automatic key rotation with configurable intervals
+  - Key versioning for backward compatibility
+  - PBKDF2 and SCRYPT key derivation functions
+  - Configurable iteration counts and custom salts
+  - Key export/import for backup and restoration
+- **Enhanced AES-GCM**: Improved with better key derivation and management
+- **Configuration Extensions**: YAML support for key management settings
+
+### 🛡️ Security Improvements
+- **Stronger Key Derivation**: PBKDF2 with 100,000+ iterations (configurable)
+- **Memory-Hard KDF**: SCRYPT support for enhanced security
+- **Key Rotation**: Automatic rotation prevents long-term key exposure
+- **Polymorphic IVs**: Unique initialization vectors for each encryption
+- **Authenticated Encryption**: All symmetric algorithms now use AEAD modes
+
+### 📚 Documentation
+- Updated README with comprehensive encryption algorithm guide
+- Added security recommendations and algorithm selection guide
+- Enhanced configuration examples for different security levels
+- Complete API documentation for new key management features
+
+### 🧪 Testing
+- Comprehensive test suite for all new encryption algorithms
+- Key management and rotation testing
+- Algorithm compatibility and security verification
+- Performance and reliability testing
+
+### 🔧 Technical Improvements
+- Enhanced `EncryptionFactory` with key manager support
+- New `EnhancedEncryptionAlgorithm` base class for advanced features
+- Improved error handling and exception messages
+- Better separation of concerns in encryption modules
+
+### 📦 New Modules
+- `lib/src/obfuscation/encryption/rsa_encryption.dart` - RSA implementation
+- `lib/src/obfuscation/encryption/key_management.dart` - Key management system
+- `test/enhanced_encryption_test.dart` - Comprehensive encryption tests
+- `example/confidential-advanced.yaml` - Advanced configuration examples
+
 ## [0.4.1] - 2025-01-20
 
 ### Fixed

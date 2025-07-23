@@ -1,0 +1,133 @@
+# Advanced configuration examples for dart-confidential
+# This file demonstrates various encryption algorithms and key management options
+# WARNING: These are examples only - customize for your production use!
+
+# Example 1: AES-256-GCM with key rotation
+algorithm:
+  - encrypt using aes-256-gcm
+  - compress using zlib
+  - shuffle
+
+defaultNamespace: create AdvancedSecrets
+defaultAccessModifier: internal
+
+keyManagement:
+  enableRotation: true
+  rotationIntervalDays: 30
+  maxOldKeys: 5
+  keyDerivationFunction: PBKDF2
+  keyDerivationIterations: 100000
+  salt: "production-salt-change-this"
+
+secrets:
+  - name: apiEndpoint
+    value: "https://api.example.com/v1"
+    
+  - name: encryptionKeys
+    value:
+      - "key1-placeholder"
+      - "key2-placeholder"
+      - "key3-placeholder"
+
+---
+# Example 2: ChaCha20-Poly1305 with SCRYPT key derivation
+algorithm:
+  - encrypt using chacha20-poly1305
+  - xor
+  - shuffle
+
+defaultNamespace: create ChaChaSecrets
+defaultAccessModifier: private
+
+keyManagement:
+  enableRotation: true
+  rotationIntervalDays: 14
+  maxOldKeys: 3
+  keyDerivationFunction: SCRYPT
+  salt: "chacha-salt-unique"
+
+secrets:
+  - name: databaseUrl
+    value: "postgresql://user:pass@localhost:5432/db"
+    
+  - name: jwtSecret
+    value: "super-secret-jwt-key-change-this"
+
+---
+# Example 3: RSA-4096 for high-security scenarios
+algorithm:
+  - encrypt using rsa-4096-sha512
+  - compress using bzip2
+
+defaultNamespace: create RSASecrets
+defaultAccessModifier: internal
+
+# Note: RSA doesn't use key management in the same way
+# Each encryption generates a new key pair
+
+secrets:
+  - name: masterKey
+    value: "master-encryption-key-placeholder"
+    
+  - name: certificateData
+    value: "-----BEGIN CERTIFICATE-----\nMIIC..."
+
+---
+# Example 4: Multi-layer encryption for maximum security
+algorithm:
+  - encrypt using aes-256-gcm
+  - compress using lz4
+  - encrypt using chacha20-poly1305
+  - shuffle
+  - xor
+
+defaultNamespace: create UltraSecrets
+defaultAccessModifier: private
+
+keyManagement:
+  enableRotation: true
+  rotationIntervalDays: 7  # Weekly rotation for ultra-sensitive data
+  maxOldKeys: 10
+  keyDerivationFunction: PBKDF2
+  keyDerivationIterations: 200000  # Higher iterations for better security
+  salt: "ultra-secure-salt-change-immediately"
+
+secrets:
+  - name: rootPassword
+    value: "ultra-secret-root-password"
+    
+  - name: privateKeys
+    value:
+      - "private-key-1"
+      - "private-key-2"
+      - "private-key-3"
+    
+  - name: sensitiveConfig
+    value:
+      database:
+        host: "secure-db.internal"
+        password: "db-secret-password"
+      api:
+        key: "api-secret-key"
+        endpoint: "https://secure-api.internal"
+    namespace: extend Security from Config
+    accessModifier: private
+
+---
+# Example 5: Lightweight encryption for less sensitive data
+algorithm:
+  - encrypt using aes-128-gcm
+  - shuffle
+
+defaultNamespace: create LightSecrets
+
+# No key management for simpler use cases
+
+secrets:
+  - name: cacheKey
+    value: "simple-cache-key"
+    
+  - name: debugFlags
+    value:
+      - "enable-logging"
+      - "show-debug-info"

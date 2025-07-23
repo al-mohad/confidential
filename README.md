@@ -146,11 +146,19 @@ This technique involves data encryption using the algorithm of your choice. The 
 encrypt using <algorithm>
 ```
 
-Supported algorithms:
+**Symmetric Encryption Algorithms:**
 - `aes-128-gcm` - The Advanced Encryption Standard (AES) algorithm in Galois/Counter Mode (GCM) with 128-bit key
 - `aes-192-gcm` - The Advanced Encryption Standard (AES) algorithm in Galois/Counter Mode (GCM) with 192-bit key
-- `aes-256-gcm` - The Advanced Encryption Standard (AES) algorithm in Galois/Counter Mode (GCM) with 256-bit key
-- `chacha20-poly1305` - The ChaCha20-Poly1305 algorithm
+- `aes-256-gcm` - The Advanced Encryption Standard (AES) algorithm in Galois/Counter Mode (GCM) with 256-bit key 🔒 **Recommended**
+- `chacha20-poly1305` - The ChaCha20-Poly1305 authenticated encryption algorithm
+
+**Asymmetric Encryption Algorithms:**
+- `rsa-2048` - RSA encryption with 2048-bit keys and OAEP padding
+- `rsa-4096` - RSA encryption with 4096-bit keys and OAEP padding 🔒 **High Security**
+- `rsa-2048-sha256` - RSA-2048 with SHA-256 hash function
+- `rsa-4096-sha256` - RSA-4096 with SHA-256 hash function
+- `rsa-2048-sha512` - RSA-2048 with SHA-512 hash function
+- `rsa-4096-sha512` - RSA-4096 with SHA-512 hash function 🔒 **Maximum Security**
 
 #### Compression
 
@@ -212,6 +220,57 @@ If, however, you would rather like to keep the generated secret literal declarat
 
 ```yaml
 namespace: extend Pinning from Crypto
+```
+
+## 🔒 Enhanced Security Features
+
+### Key Management and Rotation
+
+Dart Confidential now supports advanced key management with automatic key rotation for enhanced security:
+
+```yaml
+keyManagement:
+  enableRotation: true              # Enable automatic key rotation
+  rotationIntervalDays: 30          # Rotate keys every 30 days
+  maxOldKeys: 3                     # Keep 3 old keys for backward compatibility
+  keyDerivationFunction: PBKDF2     # Use PBKDF2 for key derivation (or SCRYPT)
+  keyDerivationIterations: 100000   # Number of iterations for key strengthening
+  salt: "your-unique-salt-here"     # Custom salt for key derivation
+```
+
+**Key Derivation Functions:**
+- `PBKDF2` - Password-Based Key Derivation Function 2 (recommended for most use cases)
+- `SCRYPT` - Memory-hard key derivation function (higher security, more resource intensive)
+
+**Benefits:**
+- 🔄 **Automatic Key Rotation**: Keys are automatically rotated based on your schedule
+- 🔙 **Backward Compatibility**: Old keys are retained for decrypting existing data
+- 🛡️ **Strong Key Derivation**: PBKDF2/SCRYPT with configurable iterations
+- 🔐 **Version Management**: Each key has a version for proper tracking
+
+### Algorithm Selection Guide
+
+**For Maximum Security (Recommended):**
+```yaml
+algorithm:
+  - encrypt using aes-256-gcm
+  - compress using bzip2
+  - encrypt using chacha20-poly1305
+  - shuffle
+```
+
+**For High-Security Asymmetric Encryption:**
+```yaml
+algorithm:
+  - encrypt using rsa-4096-sha512
+  - compress using lz4
+```
+
+**For Balanced Security and Performance:**
+```yaml
+algorithm:
+  - encrypt using aes-256-gcm
+  - shuffle
 ```
 
 ## Usage
