@@ -631,6 +631,98 @@ analytics:
   maxAccessAttemptsPerWindow: 20
 ```
 
+## 📱 Platform-Specific Support & Web Handling
+
+Dart Confidential provides intelligent platform detection and web-specific security handling:
+
+### Platform Detection & Security Assessment
+
+```dart
+// Automatic platform detection
+final platform = PlatformDetector.detectPlatform();
+final securityInfo = PlatformDetector.getSecurityInfo();
+
+print('Platform: ${platform.name}');
+print('Security Level: ${securityInfo.securityLevel.name}');
+print('Secrets Secure: ${PlatformDetector.areSecretsSecure}');
+
+// Platform checks
+if (PlatformDetector.isWeb) {
+  print('⚠️ Web platform detected - secrets not secure');
+} else if (PlatformDetector.isMobile) {
+  print('📱 Mobile platform - moderate to high security');
+}
+```
+
+### Web-Aware Obfuscated Values
+
+```dart
+// Automatic web warnings
+final apiKey = 'secret-key'.obfuscate(algorithm: 'aes-256-gcm')
+    .withWebWarnings('apiKey');
+
+// Fallback for web platform
+final dbUrl = 'real-db-url'.obfuscate(algorithm: 'aes-256-gcm')
+    .webAware('dbUrl', fallbackValue: 'sqlite:///fallback.db');
+
+// Disabled on web with fallback
+final encKey = 'encryption-key'.obfuscate(algorithm: 'aes-256-gcm')
+    .webDisabled('encKey', fallbackValue: 'fallback-key');
+
+// Access with automatic platform handling
+final key = apiKey.value; // Shows warning on web, works normally elsewhere
+```
+
+### Platform-Specific Configuration
+
+```dart
+// Production configuration with web warnings
+GlobalPlatformConfig.initializeForEnvironment(
+  isProduction: true,
+  showPlatformInfo: false,
+);
+
+// Development configuration with detailed info
+GlobalPlatformConfig.initializeForEnvironment(
+  isProduction: false,
+  showPlatformInfo: true,
+);
+
+// Access global platform-aware manager
+final manager = GlobalPlatformConfig.getGlobalManager();
+manager.registerSecret('apiKey', 'secret-value');
+```
+
+### Web Security Best Practices
+
+**❌ Never store on web:**
+- Database passwords
+- Private API keys
+- Encryption keys
+- Authentication secrets
+
+**✅ Safe for web:**
+- Public API keys
+- Configuration flags
+- UI settings
+- Non-sensitive data
+
+**💡 Recommended patterns:**
+```dart
+// Pattern 1: Public keys (safe for web)
+final publicKey = 'pk_live_public_key'.obfuscate(algorithm: 'aes-256-gcm')
+    .webAware('publicKey', config: WebAwareConfig.silent());
+
+// Pattern 2: Server-side proxy
+// Store secrets on server, expose via authenticated API endpoints
+
+// Pattern 3: Environment-specific fallbacks
+final serverKey = 'sk_live_server_key'.obfuscate(algorithm: 'aes-256-gcm')
+    .webAware('serverKey',
+      fallbackValue: 'pk_live_public_fallback',
+      config: WebAwareConfig.webWithWarnings());
+```
+
 ## Usage
 
 ### Build Runner Integration (Recommended)

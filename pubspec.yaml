@@ -1,6 +1,6 @@
 name: confidential
 description: Dart literals obfuscator to defend against static reverse engineering.
-version: 0.8.0
+version: 0.9.0
 repository: https://github.com/al-mohad/confidential.git
 license: Apache-2.0
 
