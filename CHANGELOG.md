@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-07-24
+
+### 📦 Added - Remote Secret Sources
+- **AWS Secrets Manager**: Full integration with AWS Secrets Manager API
+- **Google Secret Manager**: Complete Google Cloud Secret Manager support
+- **HashiCorp Vault**: Comprehensive Vault KV v2 integration with token authentication
+- **Local Caching**: Intelligent caching with encryption, compression, and automatic cleanup
+- **Multi-Provider Support**: Factory pattern for easy provider creation and configuration
+- **Health Monitoring**: Connection testing and health status reporting for all providers
+
+### 🔄 Enhanced - Secret Management
+- **Batch Operations**: Efficient retrieval of multiple secrets from remote sources
+- **Background Refresh**: Automatic cache refresh with configurable strategies
+- **Fallback Support**: Graceful degradation when remote services are unavailable
+- **Metadata Support**: Rich metadata including versions, tags, creation dates, and custom data
+- **Binary Data**: Support for both string and binary secret data across all providers
+
+### 🛡️ Improved - Security & Performance
+- **Encrypted Caching**: AES-256-GCM encryption of locally cached secrets
+- **Cache Validation**: Integrity checking and corruption detection
+- **Rate Limiting**: Proper handling of API rate limits with retry strategies
+- **Error Handling**: Comprehensive exception hierarchy for different failure modes
+- **Memory Management**: Automatic cache size management and expired entry cleanup
+
+### 🧪 Testing & Examples
+- **25 New Tests**: Complete test coverage for all remote provider functionality
+- **Working Examples**: Real-world usage examples for AWS, Google Cloud, and Vault
+- **Integration Tests**: End-to-end workflows with caching and error handling
+- **Performance Tests**: Cache statistics and validation testing
+
 ## [1.1.0] - 2025-07-24
 
 ### 🔐 Added - Hardware-Backed Security

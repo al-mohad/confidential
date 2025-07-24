@@ -22,8 +22,10 @@ This tool aims to provide an elegant and maintainable solution to the above prob
 
 - **🔐 Multi-Algorithm Obfuscation**: Supports AES-256-GCM, ChaCha20-Poly1305, XOR, and compression
 - **🔒 Hardware-Backed Security**: Platform-specific secure storage (iOS Keychain, Android Keystore) with biometric authentication
+- **📦 Remote Secret Sources**: AWS Secrets Manager, Google Secret Manager, and HashiCorp Vault integration
 - **🎯 Type-Safe API**: Strongly typed obfuscated values with compile-time safety
 - **🔄 Asynchronous Loading**: Non-blocking secret loading with caching and retry mechanisms
+- **💾 Intelligent Caching**: Local encrypted caching with compression and automatic cleanup
 - **📊 Analytics & Audit Logging**: Comprehensive access tracking with suspicious activity detection
 - **🌐 Platform-Aware Security**: Web-specific warnings and platform-optimized protection
 - **🔗 Popular Integrations**: Built-in support for Dio, Provider, Riverpod, GetIt, BLoC, and GetX
@@ -319,6 +321,69 @@ final hardwareSecret = await keyManager.createObfuscatedValue(
 - 🛡️ **Hardware Security Module**: Uses dedicated security chips when available
 - 🔄 **Automatic Fallback**: Gracefully falls back to software storage
 - 📱 **Platform Detection**: Automatically detects and uses best available security
+
+### Remote Secret Sources
+
+Dart Confidential integrates with popular cloud secret management services for enterprise-grade secret storage:
+
+```dart
+import 'package:confidential/confidential.dart';
+
+// AWS Secrets Manager
+final awsConfig = RemoteSecretConfig.aws(
+  accessKeyId: 'AKIA...',
+  secretAccessKey: 'your-secret-key',
+  region: 'us-east-1',
+);
+
+final awsProvider = AwsSecretsManagerProvider(config: awsConfig);
+final apiKey = await awsProvider.getSecretValue('production-api-key');
+
+// Google Secret Manager
+final googleConfig = RemoteSecretConfig.gcp(
+  projectId: 'my-project',
+  serviceAccountKey: 'service-account-json',
+);
+
+final googleProvider = GoogleSecretManagerProvider(config: googleConfig);
+final dbPassword = await googleProvider.getSecretValue('database-password');
+
+// HashiCorp Vault
+final vaultConfig = RemoteSecretConfig.vault(
+  address: 'https://vault.company.com',
+  token: 'hvs.your-vault-token',
+);
+
+final vaultProvider = HashiCorpVaultProvider(config: vaultConfig);
+final config = await vaultProvider.getSecretValue('app-config');
+
+// With Local Caching
+final cacheConfig = LocalCacheConfig(
+  expiration: Duration(hours: 1),
+  encryptCache: true,
+  compressCache: true,
+);
+
+final cachedProvider = await CachedRemoteProviderFactory.createAwsProvider(
+  config: awsConfig,
+  cacheConfig: cacheConfig,
+  cacheFirst: true,
+  backgroundRefresh: true,
+);
+```
+
+**Supported Providers:**
+- 🟠 **AWS Secrets Manager**: Full API integration with IAM authentication
+- 🔵 **Google Secret Manager**: Service account and OAuth token support
+- 🟣 **HashiCorp Vault**: KV v2 engine with token authentication
+- 💾 **Local Caching**: Encrypted local storage with intelligent refresh
+
+**Features:**
+- 🔄 **Batch Operations**: Retrieve multiple secrets efficiently
+- 📊 **Health Monitoring**: Connection testing and status reporting
+- 🛡️ **Secure Caching**: AES-256-GCM encrypted local cache
+- 🔄 **Background Refresh**: Automatic cache updates
+- 📈 **Performance Metrics**: Cache hit rates and response times
 
 ## 🧼 Enhanced API Ergonomics
 

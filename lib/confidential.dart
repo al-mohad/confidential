@@ -11,8 +11,22 @@ export 'src/analytics/audit_logger.dart';
 export 'src/async/async_obfuscated.dart';
 // Asynchronous secret loading
 export 'src/async/secret_providers.dart';
+// Secret expiry and rotation
+export 'src/expiry/async_expirable.dart';
+export 'src/expiry/expirable_obfuscated.dart';
+export 'src/expiry/expirable_secret.dart';
+export 'src/expiry/expiry_aware_providers.dart';
+export 'src/expiry/expiry_extensions.dart';
+export 'src/expiry/secret_rotation_manager.dart';
 // Extension methods for improved ergonomics
 export 'src/extensions/encryption_extensions.dart';
+// Remote secret providers
+export 'src/remote/aws_secrets_manager.dart';
+export 'src/remote/cached_remote_provider.dart';
+export 'src/remote/google_secret_manager.dart';
+export 'src/remote/hashicorp_vault.dart';
+export 'src/remote/local_cache_manager.dart';
+export 'src/remote/remote_secret_provider.dart';
 // Enhanced grouping and namespacing
 export 'src/grouping/secret_groups.dart';
 export 'src/integrations/bloc_integration.dart';
