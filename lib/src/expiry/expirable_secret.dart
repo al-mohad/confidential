@@ -134,14 +134,12 @@ class ExpirableSecret {
     DateTime? createdAt,
   }) : _secret = secret,
        createdAt = createdAt ?? DateTime.now(),
-       _lastAccessedAt = DateTime.now(),
        _status = SecretExpiryStatus.valid {
     _scheduleRefreshIfNeeded();
   }
 
   /// Gets the underlying secret data.
   Secret get secret {
-    _lastAccessedAt = DateTime.now();
     _updateStatus();
 
     if (_status == SecretExpiryStatus.hardExpired) {

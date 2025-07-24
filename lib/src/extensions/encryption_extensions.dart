@@ -41,7 +41,7 @@ extension StringEncryption on String {
   }
 }
 
-/// Extension methods for List<String> encryption/decryption.
+/// Extension methods for `List<String>` encryption/decryption.
 extension StringListEncryption on List<String> {
   /// Encrypts this string list using the specified algorithm.
   Secret encrypt({required String algorithm, int? nonce}) {

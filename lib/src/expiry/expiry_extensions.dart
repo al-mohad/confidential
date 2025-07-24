@@ -7,8 +7,8 @@ import 'dart:typed_data';
 import '../extensions/encryption_extensions.dart';
 import '../obfuscation/encryption/encryption.dart';
 import '../obfuscation/secret.dart';
-import 'expirable_secret.dart';
 import 'expirable_obfuscated.dart';
+import 'expirable_secret.dart';
 
 /// Extension methods for String to create expirable obfuscated values.
 extension StringExpiryExtensions on String {
@@ -32,7 +32,7 @@ extension StringExpiryExtensions on String {
     Duration gracePeriod = const Duration(minutes: 5),
   }) {
     final secret = encrypt(algorithm: algorithm, nonce: nonce);
-    
+
     final expiryConfig = SecretExpiryConfig.withTTL(
       ttl,
       autoRefresh: autoRefresh,
@@ -68,7 +68,7 @@ extension StringExpiryExtensions on String {
     Duration gracePeriod = const Duration(minutes: 5),
   }) {
     final secret = encrypt(algorithm: algorithm, nonce: nonce);
-    
+
     final expiryConfig = SecretExpiryConfig.withExpiryTime(
       expiresAt,
       autoRefresh: autoRefresh,
@@ -102,7 +102,7 @@ extension StringExpiryExtensions on String {
     Duration gracePeriod = const Duration(minutes: 5),
   }) {
     final secret = encrypt(algorithm: algorithm, nonce: nonce);
-    
+
     final expiryConfig = SecretExpiryConfig.withTTL(
       ttl,
       autoRefresh: autoRefresh,
@@ -110,14 +110,11 @@ extension StringExpiryExtensions on String {
       gracePeriod: gracePeriod,
     );
 
-    return ExpirableSecret(
-      secret: secret,
-      config: expiryConfig,
-    );
+    return ExpirableSecret(secret: secret, config: expiryConfig);
   }
 }
 
-/// Extension methods for List<String> to create expirable obfuscated values.
+/// Extension methods for `List<String>` to create expirable obfuscated values.
 extension StringListExpiryExtensions on List<String> {
   /// Creates an expirable obfuscated string list with TTL.
   ExpirableObfuscatedStringList obfuscateWithTTL({
@@ -136,7 +133,7 @@ extension StringListExpiryExtensions on List<String> {
 
     final encrypted = encryptionAlgorithm.obfuscate(data, actualNonce);
     final secret = Secret(data: encrypted, nonce: actualNonce);
-    
+
     final expiryConfig = SecretExpiryConfig.withTTL(
       ttl,
       autoRefresh: autoRefresh,
@@ -172,7 +169,7 @@ extension IntExpiryExtensions on int {
 
     final encrypted = encryptionAlgorithm.obfuscate(data, actualNonce);
     final secret = Secret(data: encrypted, nonce: actualNonce);
-    
+
     final expiryConfig = SecretExpiryConfig.withTTL(
       ttl,
       autoRefresh: autoRefresh,
@@ -208,7 +205,7 @@ extension DoubleExpiryExtensions on double {
 
     final encrypted = encryptionAlgorithm.obfuscate(data, actualNonce);
     final secret = Secret(data: encrypted, nonce: actualNonce);
-    
+
     final expiryConfig = SecretExpiryConfig.withTTL(
       ttl,
       autoRefresh: autoRefresh,
@@ -244,7 +241,7 @@ extension BoolExpiryExtensions on bool {
 
     final encrypted = encryptionAlgorithm.obfuscate(data, actualNonce);
     final secret = Secret(data: encrypted, nonce: actualNonce);
-    
+
     final expiryConfig = SecretExpiryConfig.withTTL(
       ttl,
       autoRefresh: autoRefresh,
@@ -280,7 +277,7 @@ extension MapExpiryExtensions on Map<String, dynamic> {
 
     final encrypted = encryptionAlgorithm.obfuscate(data, actualNonce);
     final secret = Secret(data: encrypted, nonce: actualNonce);
-    
+
     final expiryConfig = SecretExpiryConfig.withTTL(
       ttl,
       autoRefresh: autoRefresh,
