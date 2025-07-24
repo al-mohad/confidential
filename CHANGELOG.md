@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-01-24
+
+### 📊 Added - Analytics & Audit Logging
+- **Comprehensive Audit System**: Anonymized access tracking with suspicious behavior detection
+- **AuditLogger**: Real-time logging of secret access attempts, modifications, and deletions
+- **AnalyticsConfig**: Production/development presets with configurable privacy and security settings
+- **Suspicious Behavior Detection**: Automatic flagging of rapid access attempts with customizable thresholds
+- **Analytics-Aware Secrets**: Obfuscated values that automatically log access with failure tracking
+- **Real-time Reporting**: Periodic analytics reports with usage statistics and security metrics
+- **Privacy Protection**: Data anonymization with configurable sensitivity filtering
+- **Export/Import**: JSON-based audit log backup and restore functionality
+- **YAML Configuration**: Analytics settings integrated into configuration system
+
+### 🛡️ Security Features
+- Configurable time windows for suspicious detection (default: 5 minutes)
+- Access attempt thresholds with critical severity alerts
+- Stream-based monitoring for real-time security responses
+- Memory-efficient log management with retention limits
+- No plaintext secrets in audit logs
+ 
 ## [0.7.0] - 2025-01-23
 
 ### 🧩 Added - Popular Package Integrations
@@ -112,24 +132,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration guides for existing applications
 - Advanced configuration examples
 
-### 🧪 Testing and Quality
-- Comprehensive test suite for all integrations (66 tests total)
-- Mock implementations for testing without dependencies
-- Integration tests for cross-package compatibility
-- Performance and memory leak testing
-- Error scenario and edge case coverage
-
-### 📦 New Modules
-- `lib/src/integrations/dio_integration.dart` - Dio HTTP client integration
-- `lib/src/integrations/provider_integration.dart` - Provider dependency injection
-- `lib/src/integrations/riverpod_integration.dart` - Riverpod state management
-- `lib/src/integrations/get_it_integration.dart` - GetIt service locator
-- `lib/src/integrations/bloc_integration.dart` - BLoC/Cubit state management
-- `lib/src/integrations/getx_integration.dart` - GetX state management (NEW)
-- `lib/src/integrations/integration_manager.dart` - Unified integration manager
-- `test/integrations_test.dart` - Comprehensive integration test suite
-- `example/lib/integrations_example.dart` - Complete usage demonstrations
-
 ## [0.6.0] - 2025-01-23
 
 ### 🧼 Added - Enhanced API Ergonomics
@@ -188,30 +190,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Type Safety**: Strong typing throughout the async and extension systems
 - **Backward Compatibility**: All existing code continues to work unchanged
 - **Performance Optimizations**: Intelligent caching and lazy loading
-
-### 📚 Documentation and Examples
-- Updated README with comprehensive API ergonomics guide
-- New example configurations showcasing grouping and async features
-- Complete usage examples for all new extension methods
-- Advanced secret management patterns and best practices
-- Performance and security recommendations
-
-### 🧪 Testing and Quality
-- Comprehensive test suite for all extension methods
-- Secret grouping and filtering test coverage
-- Async provider testing with error scenarios and edge cases
-- Integration tests for complete workflows
-- Performance and reliability testing
-
-### 📦 New Modules
-- `lib/src/extensions/encryption_extensions.dart` - Extension methods for all data types
-- `lib/src/async/secret_providers.dart` - Asynchronous secret loading infrastructure
-- `lib/src/async/async_obfuscated.dart` - Async obfuscated value implementations
-- `lib/src/grouping/secret_groups.dart` - Enhanced secret organization system
-- `test/api_improvements_test.dart` - Comprehensive test suite for new features
-- `example/lib/ergonomics_example.dart` - Complete usage demonstration
-- `example/confidential-ergonomics.yaml` - Advanced configuration examples
-
+ 
 ## [0.5.0] - 2025-01-23
 
 ### 🔒 Added - Enhanced Encryption Support
@@ -238,30 +217,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Key Rotation**: Automatic rotation prevents long-term key exposure
 - **Polymorphic IVs**: Unique initialization vectors for each encryption
 - **Authenticated Encryption**: All symmetric algorithms now use AEAD modes
-
-### 📚 Documentation
-- Updated README with comprehensive encryption algorithm guide
-- Added security recommendations and algorithm selection guide
-- Enhanced configuration examples for different security levels
-- Complete API documentation for new key management features
-
-### 🧪 Testing
-- Comprehensive test suite for all new encryption algorithms
-- Key management and rotation testing
-- Algorithm compatibility and security verification
-- Performance and reliability testing
-
-### 🔧 Technical Improvements
-- Enhanced `EncryptionFactory` with key manager support
-- New `EnhancedEncryptionAlgorithm` base class for advanced features
-- Improved error handling and exception messages
-- Better separation of concerns in encryption modules
-
-### 📦 New Modules
-- `lib/src/obfuscation/encryption/rsa_encryption.dart` - RSA implementation
-- `lib/src/obfuscation/encryption/key_management.dart` - Key management system
-- `test/enhanced_encryption_test.dart` - Comprehensive encryption tests
-- `example/confidential-advanced.yaml` - Advanced configuration examples
 
 ## [0.4.1] - 2025-01-20
 
@@ -304,14 +259,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Type-safe generated code**: Strongly typed obfuscated values
 - **Cross-platform**: Works on all Dart platforms (Flutter, web, server)
 - **Security-focused**: Designed for protecting sensitive literals from static analysis
-
-### Documentation
-- Comprehensive README with usage examples
-- API documentation for all public interfaces
-- Security considerations and best practices
-- Migration guide from Swift Confidential concepts
-
-### Examples
-- Example configuration files
-- Sample usage patterns
-- CLI usage examples

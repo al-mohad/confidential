@@ -566,6 +566,71 @@ final getXService = manager.getXService;
 await manager.refreshAllSecrets();
 ```
 
+## 📊 Analytics & Audit Logging
+
+Monitor secret access and detect suspicious behavior with comprehensive audit logging:
+
+### Basic Analytics Setup
+
+```dart
+// Configure analytics for production
+final config = AnalyticsConfig.production();
+final logger = AuditLogger(config);
+
+// Create analytics-aware secrets
+final apiKey = 'secret-key'.obfuscate(algorithm: 'aes-256-gcm')
+    .withAnalytics(logger, 'apiKey');
+
+// Access is automatically logged
+final key = apiKey.value; // Logged with metadata and statistics
+```
+
+### Suspicious Behavior Detection
+
+```dart
+// Monitor for security threats
+logger.suspiciousEvents.listen((event) {
+  print('🚨 SUSPICIOUS: ${event.message}');
+  if (event.severity == AuditSeverity.critical) {
+    securityTeam.alert(event);
+  }
+});
+
+// Configure detection thresholds
+final config = AnalyticsConfig(
+  suspiciousTimeWindowMinutes: 5,
+  maxAccessAttemptsPerWindow: 20,
+  enableSuspiciousDetection: true,
+);
+```
+
+### Real-time Analytics Reporting
+
+```dart
+// Generate periodic reports
+final reporter = AnalyticsReporter(logger);
+reporter.reports.listen((report) {
+  print('📊 ${report.totalAccesses} accesses, ${report.successRate}% success rate');
+  if (report.hasSecurityConcerns) {
+    dashboard.showSecurityAlert();
+  }
+});
+reporter.startReporting();
+```
+
+### YAML Configuration
+
+```yaml
+analytics:
+  enabled: true
+  enableAccessCounters: true
+  enableSuspiciousDetection: true
+  anonymizeData: true
+  maxLogEntries: 5000
+  suspiciousTimeWindowMinutes: 5
+  maxAccessAttemptsPerWindow: 20
+```
+
 ## Usage
 
 ### Build Runner Integration (Recommended)
