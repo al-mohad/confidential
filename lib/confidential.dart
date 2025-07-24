@@ -31,6 +31,10 @@ export 'src/async/async_obfuscated.dart';
 // Enhanced grouping and namespacing
 export 'src/grouping/secret_groups.dart';
 
+// Analytics and audit logging
+export 'src/analytics/audit_logger.dart';
+export 'src/analytics/analytics_obfuscated.dart';
+
 // Popular package integrations
 export 'src/integrations/dio_integration.dart';
 export 'src/integrations/provider_integration.dart';

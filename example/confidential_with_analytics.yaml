@@ -1,0 +1,205 @@
+# Dart Confidential Configuration with Analytics
+# This example shows how to configure analytics and audit logging
+
+# Core obfuscation algorithm
+algorithm:
+  - randomization
+  - compression
+  - encryption
+
+# Default settings
+defaultAccessModifier: internal
+defaultNamespace: MyApp.Secrets
+experimentalMode: false
+
+# Analytics and audit logging configuration
+analytics:
+  # Enable analytics tracking
+  enabled: true
+  
+  # Enable access counters per secret
+  enableAccessCounters: true
+  
+  # Enable suspicious behavior detection
+  enableSuspiciousDetection: true
+  
+  # Anonymize all logged data for privacy
+  anonymizeData: true
+  
+  # Maximum number of log entries to keep in memory
+  maxLogEntries: 5000
+  
+  # Time window for suspicious behavior detection (in minutes)
+  suspiciousTimeWindowMinutes: 5
+  
+  # Maximum access attempts per secret within time window before flagging as suspicious
+  maxAccessAttemptsPerWindow: 20
+  
+  # Whether to log successful accesses
+  logSuccessfulAccess: true
+  
+  # Whether to log failed accesses
+  logFailedAccess: true
+
+# Secret definitions
+secrets:
+  - name: apiKey
+    value: sk_live_1234567890abcdef
+    algorithm: aes-256-gcm
+    nonce: 12345
+    accessModifier: internal
+    namespace: MyApp.Secrets.Api
+    tags:
+      - api
+      - external
+      - production
+    environment: production
+    priority: high
+
+  - name: databasePassword
+    value: super_secret_db_password_123
+    algorithm: chacha20-poly1305
+    nonce: 67890
+    accessModifier: internal
+    namespace: MyApp.Secrets.Database
+    tags:
+      - database
+      - internal
+      - critical
+    environment: production
+    priority: critical
+
+  - name: jwtSecret
+    value: jwt_signing_secret_key_xyz789
+    algorithm: aes-256-gcm
+    nonce: 11111
+    accessModifier: internal
+    namespace: MyApp.Secrets.Auth
+    tags:
+      - auth
+      - jwt
+      - security
+    environment: production
+    priority: high
+
+  - name: encryptionKey
+    value: master_encryption_key_abc123
+    algorithm: aes-256-gcm
+    nonce: 22222
+    accessModifier: internal
+    namespace: MyApp.Secrets.Encryption
+    tags:
+      - encryption
+      - master
+      - security
+    environment: production
+    priority: critical
+
+  - name: debugApiKey
+    value: debug_api_key_for_development
+    algorithm: aes-256-gcm
+    nonce: 99999
+    accessModifier: internal
+    namespace: MyApp.Secrets.Debug
+    tags:
+      - api
+      - debug
+      - development
+    environment: development
+    priority: low
+
+# Key management configuration
+keyManagement:
+  provider: memory
+  rotationInterval: 30
+  keyDerivation:
+    algorithm: pbkdf2
+    iterations: 100000
+    saltLength: 32
+
+# Secret grouping and organization
+groups:
+  production:
+    description: Production environment secrets
+    tags:
+      - production
+      - critical
+    environment: production
+    
+  development:
+    description: Development environment secrets
+    tags:
+      - development
+      - debug
+    environment: development
+    
+  api:
+    description: External API related secrets
+    tags:
+      - api
+      - external
+    priority: high
+    
+  database:
+    description: Database connection secrets
+    tags:
+      - database
+      - internal
+    priority: critical
+    
+  security:
+    description: Security and encryption secrets
+    tags:
+      - security
+      - encryption
+      - auth
+    priority: critical
+
+# Namespaces for code organization
+namespaces:
+  MyApp.Secrets.Api:
+    description: API-related secrets
+    accessModifier: internal
+    
+  MyApp.Secrets.Database:
+    description: Database connection secrets
+    accessModifier: internal
+    
+  MyApp.Secrets.Auth:
+    description: Authentication and authorization secrets
+    accessModifier: internal
+    
+  MyApp.Secrets.Encryption:
+    description: Encryption and cryptographic secrets
+    accessModifier: internal
+    
+  MyApp.Secrets.Debug:
+    description: Development and debugging secrets
+    accessModifier: internal
+
+# Example usage in code:
+# 
+# // Load configuration with analytics
+# final config = ConfidentialConfiguration.fromFile('confidential_with_analytics.yaml');
+# 
+# // Create audit logger from configuration
+# final logger = AuditLogger(config.analytics ?? AnalyticsConfig.disabled());
+# 
+# // Create analytics-aware secrets
+# final factory = AnalyticsObfuscatedFactory(logger);
+# final apiKey = factory.string('apiKey', MyApp.Secrets.Api.apiKey);
+# 
+# // Access with automatic logging
+# final key = apiKey.value; // This access is automatically logged
+# 
+# // Monitor suspicious behavior
+# logger.suspiciousEvents.listen((event) {
+#   print('Suspicious activity detected: ${event.message}');
+# });
+# 
+# // Generate analytics reports
+# final reporter = AnalyticsReporter(logger);
+# reporter.reports.listen((report) {
+#   print('Analytics: ${report.totalAccesses} accesses, ${report.successRate}% success rate');
+# });
+# reporter.startReporting();
