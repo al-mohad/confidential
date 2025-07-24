@@ -2,7 +2,7 @@
 library;
 
 import 'dart:async';
-import 'dart:io';
+
 import 'package:confidential/confidential.dart';
 
 void main() async {

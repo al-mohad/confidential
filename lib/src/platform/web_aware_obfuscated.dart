@@ -137,7 +137,7 @@ class WebAwareObfuscatedValue<T> implements ObfuscatedValue<T> {
     // Disable secrets on web if configured
     if (_config.disableSecretsOnWeb) {
       if (_config.useFallbackOnWeb && _fallbackValue != null) {
-        return _fallbackValue!;
+        return _fallbackValue;
       }
 
       throw PlatformSecurityException(
@@ -149,7 +149,7 @@ class WebAwareObfuscatedValue<T> implements ObfuscatedValue<T> {
 
     // Use fallback if configured and available
     if (_config.useFallbackOnWeb && _fallbackValue != null) {
-      return _fallbackValue!;
+      return _fallbackValue;
     }
 
     // Return the actual secret value (with warning already shown)

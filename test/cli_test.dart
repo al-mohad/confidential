@@ -74,8 +74,6 @@ void main() {
       });
 
       test('creates directory structure', () async {
-        final configPath = path.join(tempDir.path, 'confidential.yaml');
-
         // Change to temp directory
         final originalDir = Directory.current;
         Directory.current = tempDir;

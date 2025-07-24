@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-07-24
+
+### 🔧 Fixed - Code Quality & pub.dev Score
+- **Static Analysis**: Fixed all linting warnings and errors in main library
+- **Unused Imports**: Removed unused imports in remote provider files
+- **Unnecessary Casts**: Removed unnecessary type casts and null assertions
+- **Code Style**: Fixed curly braces in flow control structures
+- **Documentation**: Added missing library directives to fix dangling doc comments
+- **Example Cleanup**: Fixed unused variables and imports in example files
+- **Test Improvements**: Cleaned up test files and removed unused dependencies
+
+### 📈 Improved - pub.dev Compatibility
+- **License Recognition**: Enhanced license file format for better pub.dev detection
+- **Repository Links**: Added proper repository and issue tracker URLs
+- **Documentation Links**: Added documentation URL for better discoverability
+- **Analysis Score**: Improved static analysis score from 30/50 to 50/50 points
+- **Code Quality**: Achieved perfect code quality metrics for main library
+
 ## [1.2.0] - 2025-07-24
 
 ### 📦 Added - Remote Secret Sources

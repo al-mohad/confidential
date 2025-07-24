@@ -4,7 +4,6 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import '../obfuscation/secret.dart';
 import 'remote_secret_provider.dart';
@@ -13,22 +12,20 @@ import 'remote_secret_provider.dart';
 class GoogleSecretManagerProvider implements RemoteSecretProvider {
   @override
   final RemoteSecretConfig config;
-  
+
   final HttpClient _httpClient;
   final Map<String, RemoteSecretValue> _cache = {};
   final String _baseUrl;
   final String _projectId;
 
-  GoogleSecretManagerProvider({
-    required this.config,
-  }) : _httpClient = HttpClient(),
-       _projectId = config.credentials['projectId'] ?? '',
-       _baseUrl = config.endpoint ?? 'https://secretmanager.googleapis.com' {
-    
+  GoogleSecretManagerProvider({required this.config})
+    : _httpClient = HttpClient(),
+      _projectId = config.credentials['projectId'] ?? '',
+      _baseUrl = config.endpoint ?? 'https://secretmanager.googleapis.com' {
     if (_projectId.isEmpty) {
       throw RemoteSecretException('Google Cloud Project ID is required');
     }
-    
+
     if (!config.validateSSL) {
       _httpClient.badCertificateCallback = (cert, host, port) => true;
     }
@@ -44,11 +41,11 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
   Future<Map<String, Secret>> loadSecrets(List<String> names) async {
     final results = <String, Secret>{};
     final secretValues = await getSecretValues(names);
-    
+
     for (final entry in secretValues.entries) {
       results[entry.key] = entry.value.toSecret();
     }
-    
+
     return results;
   }
 
@@ -72,7 +69,10 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
   }
 
   @override
-  Future<RemoteSecretValue?> getSecretValue(String name, {String? version}) async {
+  Future<RemoteSecretValue?> getSecretValue(
+    String name, {
+    String? version,
+  }) async {
     // Check cache first
     if (config.enableCaching) {
       final cached = _cache[name];
@@ -83,14 +83,15 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
 
     try {
       final versionPath = version ?? 'latest';
-      final secretPath = 'projects/$_projectId/secrets/$name/versions/$versionPath';
+      final secretPath =
+          'projects/$_projectId/secrets/$name/versions/$versionPath';
       final url = '$_baseUrl/v1/$secretPath:access';
-      
+
       final response = await _makeGoogleRequest('GET', url);
-      
+
       final payload = response['payload'] as Map<String, dynamic>;
       final data = payload['data'] as String?;
-      
+
       if (data == null) {
         throw RemoteSecretException('Secret $name has no data');
       }
@@ -101,7 +102,7 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
       final metadata = RemoteSecretMetadata(
         name: response['name'] as String,
         version: _extractVersionFromName(response['name'] as String),
-        createdAt: response['createTime'] != null 
+        createdAt: response['createTime'] != null
             ? DateTime.parse(response['createTime'] as String)
             : null,
       );
@@ -120,24 +121,29 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
       return secretValue;
     } catch (e) {
       if (e is RemoteSecretException) rethrow;
-      throw RemoteSecretException('Failed to get secret $name: $e', cause: e as Exception?);
+      throw RemoteSecretException(
+        'Failed to get secret $name: $e',
+        cause: e as Exception?,
+      );
     }
   }
 
   @override
-  Future<Map<String, RemoteSecretValue>> getSecretValues(List<String> names) async {
+  Future<Map<String, RemoteSecretValue>> getSecretValues(
+    List<String> names,
+  ) async {
     final results = <String, RemoteSecretValue>{};
-    
+
     // Google doesn't have batch get, so we'll do them concurrently
     final futures = names.map((name) => getSecretValue(name));
     final values = await Future.wait(futures);
-    
+
     for (int i = 0; i < names.length; i++) {
       if (values[i] != null) {
         results[names[i]] = values[i]!;
       }
     }
-    
+
     return results;
   }
 
@@ -146,16 +152,16 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
     try {
       final url = '$_baseUrl/v1/projects/$_projectId/secrets';
       final response = await _makeGoogleRequest('GET', url);
-      
+
       final secrets = response['secrets'] as List? ?? [];
-      
+
       return secrets.map((secret) {
         final secretMap = secret as Map<String, dynamic>;
         final labels = secretMap['labels'] as Map<String, dynamic>? ?? {};
-        
+
         return RemoteSecretMetadata(
           name: _extractSecretNameFromPath(secretMap['name'] as String),
-          createdAt: secretMap['createTime'] != null 
+          createdAt: secretMap['createTime'] != null
               ? DateTime.parse(secretMap['createTime'] as String)
               : null,
           tags: labels.cast<String, String>(),
@@ -167,7 +173,10 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
       }).toList();
     } catch (e) {
       if (e is RemoteSecretException) rethrow;
-      throw RemoteSecretException('Failed to list secrets: $e', cause: e as Exception?);
+      throw RemoteSecretException(
+        'Failed to list secrets: $e',
+        cause: e as Exception?,
+      );
     }
   }
 
@@ -176,12 +185,12 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
     try {
       final url = '$_baseUrl/v1/projects/$_projectId/secrets/$name';
       final response = await _makeGoogleRequest('GET', url);
-      
+
       final labels = response['labels'] as Map<String, dynamic>? ?? {};
-      
+
       return RemoteSecretMetadata(
         name: _extractSecretNameFromPath(response['name'] as String),
-        createdAt: response['createTime'] != null 
+        createdAt: response['createTime'] != null
             ? DateTime.parse(response['createTime'] as String)
             : null,
         tags: labels.cast<String, String>(),
@@ -192,12 +201,17 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
       );
     } catch (e) {
       if (e is RemoteSecretException) rethrow;
-      throw RemoteSecretException('Failed to get metadata for $name: $e', cause: e as Exception?);
+      throw RemoteSecretException(
+        'Failed to get metadata for $name: $e',
+        cause: e as Exception?,
+      );
     }
   }
 
   @override
-  Future<void> putSecret(String name, String value, {
+  Future<void> putSecret(
+    String name,
+    String value, {
     String? description,
     Map<String, String>? tags,
     String? kmsKeyId,
@@ -208,9 +222,7 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
       final createPayload = <String, dynamic>{
         'secretId': name,
         'secret': {
-          'replication': {
-            'automatic': {},
-          },
+          'replication': {'automatic': {}},
           if (tags != null) 'labels': tags,
         },
       };
@@ -218,17 +230,19 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
       await _makeGoogleRequest('POST', createUrl, createPayload);
 
       // Then add the secret version with the value
-      final addVersionUrl = '$_baseUrl/v1/projects/$_projectId/secrets/$name:addVersion';
+      final addVersionUrl =
+          '$_baseUrl/v1/projects/$_projectId/secrets/$name:addVersion';
       final versionPayload = {
-        'payload': {
-          'data': base64Encode(utf8.encode(value)),
-        },
+        'payload': {'data': base64Encode(utf8.encode(value))},
       };
 
       await _makeGoogleRequest('POST', addVersionUrl, versionPayload);
     } catch (e) {
       if (e is RemoteSecretException) rethrow;
-      throw RemoteSecretException('Failed to put secret $name: $e', cause: e as Exception?);
+      throw RemoteSecretException(
+        'Failed to put secret $name: $e',
+        cause: e as Exception?,
+      );
     }
   }
 
@@ -239,7 +253,10 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
       await _makeGoogleRequest('DELETE', url);
     } catch (e) {
       if (e is RemoteSecretException) rethrow;
-      throw RemoteSecretException('Failed to delete secret $name: $e', cause: e as Exception?);
+      throw RemoteSecretException(
+        'Failed to delete secret $name: $e',
+        cause: e as Exception?,
+      );
     }
   }
 
@@ -259,7 +276,7 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
       final startTime = DateTime.now();
       await listSecretsWithMetadata();
       final endTime = DateTime.now();
-      
+
       return {
         'status': 'healthy',
         'service': 'Google Secret Manager',
@@ -279,10 +296,14 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
   }
 
   /// Makes an authenticated Google Cloud API request.
-  Future<Map<String, dynamic>> _makeGoogleRequest(String method, String url, [Map<String, dynamic>? payload]) async {
+  Future<Map<String, dynamic>> _makeGoogleRequest(
+    String method,
+    String url, [
+    Map<String, dynamic>? payload,
+  ]) async {
     final uri = Uri.parse(url);
     late HttpClientRequest request;
-    
+
     switch (method.toUpperCase()) {
       case 'GET':
         request = await _httpClient.getUrl(uri);
@@ -299,46 +320,54 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
       default:
         throw RemoteSecretException('Unsupported HTTP method: $method');
     }
-    
+
     // Set headers
     request.headers.set('Content-Type', 'application/json');
-    
+
     // Add authentication
     await _addGoogleAuthHeaders(request);
-    
+
     // Add custom headers
     config.customHeaders.forEach((key, value) {
       request.headers.set(key, value);
     });
-    
+
     // Write payload if provided
     if (payload != null) {
       request.write(jsonEncode(payload));
     }
-    
+
     final response = await request.close();
     final responseBody = await response.transform(utf8.decoder).join();
-    
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (responseBody.isEmpty) {
         return {};
       }
       return jsonDecode(responseBody) as Map<String, dynamic>;
     } else {
-      final errorData = responseBody.isNotEmpty 
+      final errorData = responseBody.isNotEmpty
           ? jsonDecode(responseBody) as Map<String, dynamic>
           : <String, dynamic>{};
-      
+
       final error = errorData['error'] as Map<String, dynamic>?;
       final message = error?['message'] as String? ?? 'Unknown error';
-      final code = error?['code'] as int?;
-      
+
       if (response.statusCode == 404) {
-        throw RemoteSecretNotFoundException(message, statusCode: response.statusCode);
+        throw RemoteSecretNotFoundException(
+          message,
+          statusCode: response.statusCode,
+        );
       } else if (response.statusCode == 401 || response.statusCode == 403) {
-        throw RemoteSecretAuthException(message, statusCode: response.statusCode);
+        throw RemoteSecretAuthException(
+          message,
+          statusCode: response.statusCode,
+        );
       } else if (response.statusCode == 429) {
-        throw RemoteSecretRateLimitException(message, statusCode: response.statusCode);
+        throw RemoteSecretRateLimitException(
+          message,
+          statusCode: response.statusCode,
+        );
       } else {
         throw RemoteSecretException(message, statusCode: response.statusCode);
       }
@@ -349,7 +378,7 @@ class GoogleSecretManagerProvider implements RemoteSecretProvider {
   Future<void> _addGoogleAuthHeaders(HttpClientRequest request) async {
     final accessToken = config.credentials['accessToken'];
     final serviceAccountKey = config.credentials['serviceAccountKey'];
-    
+
     if (accessToken != null) {
       request.headers.set('Authorization', 'Bearer $accessToken');
     } else if (serviceAccountKey != null) {

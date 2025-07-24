@@ -5,11 +5,10 @@
 library;
 
 import 'dart:async';
-import 'dart:convert';
 
-import '../obfuscation/secret.dart';
 import '../async/async_obfuscated.dart';
 import '../async/secret_providers.dart';
+import '../obfuscation/secret.dart';
 
 /// Dio integration interface to avoid hard dependency.
 /// 

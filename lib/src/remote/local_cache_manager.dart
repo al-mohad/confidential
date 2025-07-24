@@ -7,7 +7,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
-import 'package:crypto/crypto.dart';
 
 import '../extensions/encryption_extensions.dart';
 import '../obfuscation/secret.dart';
@@ -17,16 +16,16 @@ import 'remote_secret_provider.dart';
 class CacheEntry {
   /// The cached secret value.
   final RemoteSecretValue secretValue;
-  
+
   /// When this entry was cached.
   final DateTime cachedAt;
-  
+
   /// When this entry expires.
   final DateTime expiresAt;
-  
+
   /// Size of the cached data in bytes.
   final int size;
-  
+
   /// ETag or version for cache validation.
   final String? etag;
 
@@ -46,7 +45,7 @@ class CacheEntry {
     return {
       'secretValue': {
         'value': secretValue.value,
-        'binaryValue': secretValue.binaryValue != null 
+        'binaryValue': secretValue.binaryValue != null
             ? base64Encode(secretValue.binaryValue!)
             : null,
         'metadata': secretValue.metadata.toMap(),
@@ -62,15 +61,15 @@ class CacheEntry {
   factory CacheEntry.fromMap(Map<String, dynamic> map) {
     final secretValueMap = map['secretValue'] as Map<String, dynamic>;
     final binaryValueStr = secretValueMap['binaryValue'] as String?;
-    
+
     return CacheEntry(
       secretValue: RemoteSecretValue(
         value: secretValueMap['value'] as String,
-        binaryValue: binaryValueStr != null 
+        binaryValue: binaryValueStr != null
             ? base64Decode(binaryValueStr)
             : null,
         metadata: RemoteSecretMetadata.fromMap(
-          secretValueMap['metadata'] as Map<String, dynamic>
+          secretValueMap['metadata'] as Map<String, dynamic>,
         ),
       ),
       cachedAt: DateTime.parse(map['cachedAt'] as String),
@@ -85,22 +84,22 @@ class CacheEntry {
 class CacheStatistics {
   /// Total number of cached entries.
   final int totalEntries;
-  
+
   /// Total cache size in bytes.
   final int totalSize;
-  
+
   /// Number of expired entries.
   final int expiredEntries;
-  
+
   /// Cache hit rate (0.0 to 1.0).
   final double hitRate;
-  
+
   /// Number of cache hits.
   final int hits;
-  
+
   /// Number of cache misses.
   final int misses;
-  
+
   /// When the cache was last cleaned.
   final DateTime? lastCleanup;
 
@@ -133,24 +132,23 @@ class LocalCacheManager {
   final LocalCacheConfig config;
   final Directory _cacheDir;
   final Map<String, CacheEntry> _memoryCache = {};
-  
+
   int _hits = 0;
   int _misses = 0;
   DateTime? _lastCleanup;
 
-  LocalCacheManager({
-    required this.config,
-  }) : _cacheDir = Directory(config.cacheDirectory);
+  LocalCacheManager({required this.config})
+    : _cacheDir = Directory(config.cacheDirectory);
 
   /// Initializes the cache directory.
   Future<void> initialize() async {
     if (!await _cacheDir.exists()) {
       await _cacheDir.create(recursive: true);
     }
-    
+
     // Load existing cache entries into memory
     await _loadCacheFromDisk();
-    
+
     // Schedule periodic cleanup
     Timer.periodic(const Duration(hours: 1), (_) => _cleanupExpiredEntries());
   }
@@ -186,7 +184,11 @@ class LocalCacheManager {
   }
 
   /// Puts a secret value in the cache.
-  Future<void> put(String key, RemoteSecretValue secretValue, {String? etag}) async {
+  Future<void> put(
+    String key,
+    RemoteSecretValue secretValue, {
+    String? etag,
+  }) async {
     final now = DateTime.now();
     final expiresAt = now.add(config.expiration);
     final size = _calculateSize(secretValue);
@@ -220,7 +222,7 @@ class LocalCacheManager {
   /// Clears all cached entries.
   Future<void> clear() async {
     _memoryCache.clear();
-    
+
     if (await _cacheDir.exists()) {
       await for (final entity in _cacheDir.list()) {
         if (entity is File && entity.path.endsWith('.cache')) {
@@ -233,8 +235,13 @@ class LocalCacheManager {
   /// Gets cache statistics.
   Future<CacheStatistics> getStatistics() async {
     final totalEntries = _memoryCache.length;
-    final totalSize = _memoryCache.values.fold<int>(0, (sum, entry) => sum + entry.size);
-    final expiredEntries = _memoryCache.values.where((entry) => entry.isExpired).length;
+    final totalSize = _memoryCache.values.fold<int>(
+      0,
+      (sum, entry) => sum + entry.size,
+    );
+    final expiredEntries = _memoryCache.values
+        .where((entry) => entry.isExpired)
+        .length;
     final totalRequests = _hits + _misses;
     final hitRate = totalRequests > 0 ? _hits / totalRequests : 0.0;
 
@@ -309,7 +316,7 @@ class LocalCacheManager {
   /// Loads a cache entry from disk.
   Future<CacheEntry?> _loadCacheEntry(String key) async {
     final file = File('${_cacheDir.path}/$key.cache');
-    
+
     if (!await file.exists()) {
       return null;
     }
@@ -321,7 +328,7 @@ class LocalCacheManager {
       if (config.compressCache) {
         final archive = ZipDecoder().decodeBytes(data);
         if (archive.files.isNotEmpty) {
-          data = archive.files.first.content as Uint8List;
+          data = archive.files.first.content;
         }
       }
 
@@ -333,7 +340,7 @@ class LocalCacheManager {
 
       final json = utf8.decode(data);
       final map = jsonDecode(json) as Map<String, dynamic>;
-      
+
       return CacheEntry.fromMap(map);
     } catch (e) {
       // Delete corrupted cache file
@@ -345,24 +352,24 @@ class LocalCacheManager {
   /// Saves a cache entry to disk.
   Future<void> _saveCacheEntry(String key, CacheEntry entry) async {
     final file = File('${_cacheDir.path}/$key.cache');
-    
+
     try {
       final json = jsonEncode(entry.toMap());
       Uint8List data = Uint8List.fromList(utf8.encode(json));
 
       // Encrypt if enabled
       if (config.encryptCache) {
-        data = data.encrypt(
-          algorithm: config.encryptionAlgorithm,
-          nonce: key.hashCode,
-        ).data;
+        data = data
+            .encrypt(algorithm: config.encryptionAlgorithm, nonce: key.hashCode)
+            .data;
       }
 
       // Compress if enabled
       if (config.compressCache) {
         final archive = Archive();
         archive.addFile(ArchiveFile('data', data.length, data));
-        data = Uint8List.fromList(ZipEncoder().encode(archive)!);
+        final encoded = ZipEncoder().encode(archive);
+        data = Uint8List.fromList(encoded);
       }
 
       await file.writeAsBytes(data);
@@ -383,9 +390,12 @@ class LocalCacheManager {
 
   /// Ensures cache size is within limits.
   Future<void> _ensureCacheSize(int newEntrySize) async {
-    final currentSize = _memoryCache.values.fold<int>(0, (sum, entry) => sum + entry.size);
-    
-    if (currentSize + newEntrySize > config.maxCacheSize || 
+    final currentSize = _memoryCache.values.fold<int>(
+      0,
+      (sum, entry) => sum + entry.size,
+    );
+
+    if (currentSize + newEntrySize > config.maxCacheSize ||
         _memoryCache.length >= config.maxCachedSecrets) {
       await _evictOldestEntries(newEntrySize);
     }
@@ -400,7 +410,7 @@ class LocalCacheManager {
     int evictedCount = 0;
 
     for (final entry in entries) {
-      if (freedSpace >= requiredSpace && 
+      if (freedSpace >= requiredSpace &&
           _memoryCache.length - evictedCount < config.maxCachedSecrets) {
         break;
       }
@@ -414,7 +424,7 @@ class LocalCacheManager {
   /// Cleans up expired entries.
   Future<int> _cleanupExpiredEntries() async {
     final expiredKeys = <String>[];
-    
+
     for (final entry in _memoryCache.entries) {
       if (entry.value.isExpired) {
         expiredKeys.add(entry.key);

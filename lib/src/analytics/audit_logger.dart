@@ -714,10 +714,12 @@ class AuditLogger {
   bool _isSensitiveValue(String value) {
     // Check for patterns that might indicate sensitive data
     if (value.length > 50) return true; // Long strings might be sensitive
-    if (RegExp(r'^[A-Za-z0-9+/=]{20,}$').hasMatch(value))
+    if (RegExp(r'^[A-Za-z0-9+/=]{20,}$').hasMatch(value)) {
       return true; // Base64-like
-    if (RegExp(r'^[0-9a-fA-F]{16,}$').hasMatch(value))
+    }
+    if (RegExp(r'^[0-9a-fA-F]{16,}$').hasMatch(value)) {
       return true; // Hex strings
+    }
 
     return false;
   }

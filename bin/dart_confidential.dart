@@ -1,9 +1,10 @@
 #!/usr/bin/env dart
 
 /// Command-line interface for dart-confidential.
-/// 
+///
 /// This executable provides build-time secret management capabilities
 /// including code generation, asset creation, and build integration.
+library;
 
 import 'dart:io';
 

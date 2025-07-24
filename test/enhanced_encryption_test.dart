@@ -1,11 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:test/test.dart';
 import 'package:confidential/src/obfuscation/encryption/encryption.dart';
 import 'package:confidential/src/obfuscation/encryption/key_management.dart';
 import 'package:confidential/src/obfuscation/encryption/rsa_encryption.dart';
-import 'package:confidential/src/obfuscation/secret.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('Enhanced Encryption Tests', () {

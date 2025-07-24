@@ -1,30 +1,30 @@
 /// GetX state management and dependency injection integration for dart-confidential.
-/// 
+///
 /// This module provides seamless integration with GetX,
 /// allowing injection of obfuscated secrets via GetX controllers and services.
 library;
 
 import 'dart:async';
 
-import '../obfuscation/secret.dart';
 import '../async/async_obfuscated.dart';
 import '../async/secret_providers.dart';
+import '../obfuscation/secret.dart';
 
 /// GetX-like interfaces to avoid hard dependency.
-/// 
+///
 /// These allow the integration to work without requiring get as a dependency.
 
 /// GetX controller interface.
 abstract class GetxControllerLike {
   /// Called when the controller is initialized.
   void onInit();
-  
+
   /// Called when the controller is ready.
   void onReady();
-  
+
   /// Called when the controller is closed.
   void onClose();
-  
+
   /// Updates the UI.
   void update([List<Object>? ids]);
 }
@@ -33,10 +33,10 @@ abstract class GetxControllerLike {
 abstract class GetxServiceLike {
   /// Called when the service is initialized.
   void onInit();
-  
+
   /// Called when the service is ready.
   void onReady();
-  
+
   /// Called when the service is closed.
   void onClose();
 }
@@ -46,16 +46,16 @@ abstract class RxLike<T> {
   /// The current value.
   T get value;
   set value(T val);
-  
+
   /// Stream of value changes.
   Stream<T> get stream;
-  
+
   /// Listens to value changes.
   StreamSubscription<T> listen(void Function(T) onData);
-  
+
   /// Updates the value.
   void call(T val);
-  
+
   /// Closes the reactive value.
   void close();
 }
@@ -101,18 +101,18 @@ class SecretController implements GetxControllerLike {
   final Map<String, AsyncObfuscatedValue> _asyncSecrets = {};
   final Map<String, RxLike> _reactiveValues = {};
   final Map<String, Timer> _refreshTimers = {};
-  
+
   bool _initialized = false;
   bool _closed = false;
 
   /// Adds a static obfuscated secret.
   void addStaticSecret<T>(String name, ObfuscatedValue<T> secret) {
     if (_closed) return;
-    
+
     _staticSecrets[name] = secret;
     final rx = _SimpleRx<T>(secret.value);
     _reactiveValues[name] = rx;
-    
+
     if (_initialized) {
       update([name]);
     }
@@ -120,20 +120,20 @@ class SecretController implements GetxControllerLike {
 
   /// Adds an async obfuscated secret.
   void addAsyncSecret<T>(
-    String name, 
+    String name,
     AsyncObfuscatedValue<T> secret, {
     Duration refreshInterval = const Duration(minutes: 5),
     bool autoRefresh = true,
   }) {
     if (_closed) return;
-    
+
     _asyncSecrets[name] = secret;
     final rx = _SimpleRx<T?>(null);
     _reactiveValues[name] = rx;
-    
+
     // Load initial value
-    _loadAsyncSecret<T>(name, secret, rx as _SimpleRx<T?>);
-    
+    _loadAsyncSecret<T>(name, secret, rx);
+
     // Set up auto-refresh
     if (autoRefresh) {
       _refreshTimers[name] = Timer.periodic(refreshInterval, (_) {
@@ -170,7 +170,7 @@ class SecretController implements GetxControllerLike {
   Future<void> refreshSecret(String name) async {
     final asyncSecret = _asyncSecrets[name];
     final rx = _reactiveValues[name];
-    
+
     if (asyncSecret != null && rx != null) {
       asyncSecret.clearCache();
       await _loadAsyncSecret(name, asyncSecret, rx as _SimpleRx);
@@ -186,16 +186,16 @@ class SecretController implements GetxControllerLike {
   /// Removes a secret.
   void removeSecret(String name) {
     if (_closed) return;
-    
+
     _staticSecrets.remove(name);
     _asyncSecrets.remove(name);
-    
+
     final rx = _reactiveValues.remove(name);
     rx?.close();
-    
+
     final timer = _refreshTimers.remove(name);
     timer?.cancel();
-    
+
     if (_initialized) {
       update([name]);
     }
@@ -250,19 +250,19 @@ class SecretController implements GetxControllerLike {
   @override
   void onClose() {
     _closed = true;
-    
+
     // Cancel all timers
     for (final timer in _refreshTimers.values) {
       timer.cancel();
     }
     _refreshTimers.clear();
-    
+
     // Close all reactive values
     for (final rx in _reactiveValues.values) {
       rx.close();
     }
     _reactiveValues.clear();
-    
+
     _staticSecrets.clear();
     _asyncSecrets.clear();
   }
@@ -285,7 +285,7 @@ class SecretService implements GetxServiceLike {
     if (_closed) {
       throw StateError('SecretService is closed');
     }
-    
+
     return _controllers.putIfAbsent(name, () {
       final controller = SecretController();
       if (_initialized) {
@@ -306,14 +306,14 @@ class SecretService implements GetxServiceLike {
 
   /// Adds an async secret to the default controller.
   void addAsyncSecret<T>(
-    String name, 
+    String name,
     AsyncObfuscatedValue<T> secret, {
     Duration refreshInterval = const Duration(minutes: 5),
     bool autoRefresh = true,
   }) {
     secrets.addAsyncSecret(
-      name, 
-      secret, 
+      name,
+      secret,
       refreshInterval: refreshInterval,
       autoRefresh: autoRefresh,
     );
@@ -341,7 +341,9 @@ class SecretService implements GetxServiceLike {
 
   /// Refreshes all secrets in all controllers.
   Future<void> refreshAll() async {
-    final futures = _controllers.values.map((controller) => controller.refreshAll());
+    final futures = _controllers.values.map(
+      (controller) => controller.refreshAll(),
+    );
     await Future.wait(futures);
   }
 
@@ -360,7 +362,7 @@ class SecretService implements GetxServiceLike {
   @override
   void onInit() {
     _initialized = true;
-    
+
     // Initialize all existing controllers
     for (final controller in _controllers.values) {
       controller.onInit();
@@ -378,7 +380,7 @@ class SecretService implements GetxServiceLike {
   @override
   void onClose() {
     _closed = true;
-    
+
     // Close all controllers
     for (final controller in _controllers.values) {
       controller.onClose();
@@ -407,14 +409,14 @@ class ConfidentialGetXFactory {
     bool autoRefresh = true,
   }) async {
     final controller = SecretController();
-    
+
     for (final entry in secretNames.entries) {
       final asyncSecret = AsyncObfuscatedString(
         secretName: entry.key,
         provider: secretProvider,
         algorithm: entry.value,
       );
-      
+
       controller.addAsyncSecret(
         entry.key,
         asyncSecret,
@@ -422,10 +424,10 @@ class ConfidentialGetXFactory {
         autoRefresh: autoRefresh,
       );
     }
-    
+
     controller.onInit();
     controller.onReady();
-    
+
     return controller;
   }
 
@@ -437,14 +439,14 @@ class ConfidentialGetXFactory {
     bool autoRefresh = true,
   }) async {
     final service = SecretService();
-    
+
     for (final entry in secretNames.entries) {
       final asyncSecret = AsyncObfuscatedString(
         secretName: entry.key,
         provider: secretProvider,
         algorithm: entry.value,
       );
-      
+
       service.addAsyncSecret(
         entry.key,
         asyncSecret,
@@ -452,10 +454,10 @@ class ConfidentialGetXFactory {
         autoRefresh: autoRefresh,
       );
     }
-    
+
     service.onInit();
     service.onReady();
-    
+
     return service;
   }
 }
@@ -474,7 +476,7 @@ extension GetXConfidentialExtension on SecretController {
   /// Creates a computed reactive value based on secrets.
   RxLike<R> computed<R>(R Function() computation) {
     final rx = _SimpleRx<R>(computation());
-    
+
     // In a real implementation, this would track dependencies
     // and update when any dependent secret changes
     Timer.periodic(const Duration(seconds: 1), (_) {
@@ -486,7 +488,7 @@ extension GetXConfidentialExtension on SecretController {
         }
       }
     });
-    
+
     return rx;
   }
 
@@ -499,7 +501,7 @@ extension GetXConfidentialExtension on SecretController {
     if (rx == null) {
       throw ArgumentError('Secret "$secretName" not found');
     }
-    
+
     return rx.listen(callback);
   }
 }

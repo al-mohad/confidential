@@ -212,7 +212,7 @@ Future<void> demonstrateRiverpodIntegration() async {
   final apiKeySecret = 'riverpod-api-key-123'.obfuscate(
     algorithm: 'aes-256-gcm',
   );
-  final apiKeyProvider = ConfidentialRiverpodFactory.createStatic(
+  ConfidentialRiverpodFactory.createStatic(
     apiKeySecret,
     name: 'apiKeyProvider',
   );
@@ -222,13 +222,13 @@ Future<void> demonstrateRiverpodIntegration() async {
     'retries': 3,
     'baseUrl': 'https://api.example.com',
   }.obfuscate(algorithm: 'aes-256-gcm');
-  final configProvider = ConfidentialRiverpodFactory.createStatic(
+  ConfidentialRiverpodFactory.createStatic(
     configSecret,
     name: 'configProvider',
   );
 
   // Create secret manager
-  final managerProvider = ConfidentialRiverpodFactory.createManager(
+  ConfidentialRiverpodFactory.createManager(
     name: 'secretManager',
   );
 

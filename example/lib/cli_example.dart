@@ -1,11 +1,10 @@
 /// Example demonstrating CLI and build-time integration functionality.
 library;
 
-import 'dart:io';
-import 'package:path/path.dart' as path;
+import 'package:confidential/confidential.dart';
 
 void main() async {
-  print('🧰 Dart Confidential - CLI & Build-Time Integration Example\n');
+  print('🔧 Dart Confidential - CLI & Build-Time Integration Example\n');
 
   // Example 1: Project Initialization
   await demonstrateProjectInitialization();
