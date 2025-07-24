@@ -5,6 +5,131 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-01-23
+
+### 🧩 Added - Popular Package Integrations
+- **Complete Integration Ecosystem**:
+  - Dio HTTP client integration for automatic encrypted token injection
+  - Provider dependency injection with reactive secret management
+  - Riverpod integration with async value support and providers
+  - GetIt service locator integration with lazy singletons and factories
+  - BLoC/Cubit state management integration with events and states
+  - **NEW: GetX integration** with reactive controllers and services
+- **Unified Integration Manager**:
+  - Single interface to manage all package integrations
+  - Automatic initialization and lifecycle management
+  - Cross-integration secret synchronization
+  - Factory methods for common integration patterns
+
+### 🌐 Dio HTTP Client Integration
+- **ConfidentialDioInterceptor**:
+  - Automatic injection of encrypted tokens into HTTP headers
+  - Support for static, async, and dynamic token providers
+  - Configurable header names and token prefixes
+  - Custom header injection and logging capabilities
+  - Auto-refresh tokens on 401 errors
+- **Extension Methods**:
+  - Easy Dio instance setup with `addConfidentialTokens()`
+  - Direct token management methods
+  - Factory for creating pre-configured Dio instances
+
+### 📦 Provider Integration
+- **ObfuscatedValueProvider**: ChangeNotifier-compatible provider for static secrets
+- **AsyncObfuscatedValueProvider**: Provider with automatic loading and refresh
+- **SecretManagerProvider**: Centralized management of multiple secret providers
+- **Features**:
+  - Automatic UI updates when secrets change
+  - Configurable refresh intervals and auto-refresh
+  - Error handling and loading states
+  - Disposal management for memory efficiency
+
+### 🎣 Riverpod Integration
+- **RiverpodObfuscatedValueProvider**: Static secret providers
+- **RiverpodAsyncObfuscatedValueProvider**: Async secret providers with AsyncValue
+- **RiverpodObfuscatedValueFamilyProvider**: Parameterized secret providers
+- **RiverpodSecretManager**: Centralized secret management
+- **Features**:
+  - Full AsyncValue support (data, loading, error states)
+  - Provider families for parameterized secrets
+  - Extension methods for easy provider consumption
+  - Automatic invalidation and refresh capabilities
+
+### 🔧 GetIt Service Locator Integration
+- **ConfidentialGetItService**: Service for registering and retrieving secrets
+- **AsyncObfuscatedValueProvider**: Wrapper for async secrets in GetIt
+- **Features**:
+  - Singleton and lazy singleton registration
+  - Factory registration for dynamic secrets
+  - Automatic disposal management
+  - Extension methods for direct GetIt integration
+  - Bulk registration from secret providers
+
+### 🏗️ BLoC State Management Integration
+- **SecretBloc**: BLoC for managing multiple secrets with events and states
+- **SecretCubit**: Individual secret management with Cubit pattern
+- **Events**: LoadSecretEvent, RefreshSecretEvent, RefreshAllSecretsEvent
+- **States**: SecretInitialState, SecretLoadingState, SecretLoadedState, SecretErrorState
+- **Features**:
+  - Type-safe secret loading and error handling
+  - Automatic state management and UI updates
+  - Bulk secret operations and refresh capabilities
+  - Integration with existing BLoC architecture
+
+### 🎯 GetX Integration (NEW)
+- **SecretController**: GetX controller for reactive secret management
+- **SecretService**: Application-wide secret service with multiple controllers
+- **RxLike Interface**: Reactive values for real-time UI updates
+- **Features**:
+  - Reactive secret binding with automatic UI updates
+  - Computed reactive values based on secrets
+  - Worker pattern for reacting to secret changes
+  - Multiple controller support for different contexts
+  - Extension methods for enhanced ergonomics
+  - Full GetX lifecycle integration (onInit, onReady, onClose)
+
+### 🎛️ Unified Integration Manager
+- **ConfidentialIntegrationManager**: Single interface for all integrations
+- **IntegrationConfig**: Flexible configuration for enabling/disabling integrations
+- **Features**:
+  - Automatic initialization of all enabled integrations
+  - Cross-integration secret synchronization
+  - Bulk operations across all integrations
+  - Factory methods for common patterns
+  - Proper disposal and cleanup management
+
+### 🛠️ Developer Experience Improvements
+- **Factory Methods**: Easy creation of integration instances
+- **Extension Methods**: Intuitive APIs for each integration
+- **Type Safety**: Strong typing throughout all integrations
+- **Error Handling**: Comprehensive error handling and recovery
+- **Documentation**: Extensive examples and usage patterns
+- **Testing**: Full test coverage for all integrations
+
+### 📚 Documentation and Examples
+- Complete integration examples for all supported packages
+- Real-world usage patterns and best practices
+- Performance optimization guidelines
+- Migration guides for existing applications
+- Advanced configuration examples
+
+### 🧪 Testing and Quality
+- Comprehensive test suite for all integrations (66 tests total)
+- Mock implementations for testing without dependencies
+- Integration tests for cross-package compatibility
+- Performance and memory leak testing
+- Error scenario and edge case coverage
+
+### 📦 New Modules
+- `lib/src/integrations/dio_integration.dart` - Dio HTTP client integration
+- `lib/src/integrations/provider_integration.dart` - Provider dependency injection
+- `lib/src/integrations/riverpod_integration.dart` - Riverpod state management
+- `lib/src/integrations/get_it_integration.dart` - GetIt service locator
+- `lib/src/integrations/bloc_integration.dart` - BLoC/Cubit state management
+- `lib/src/integrations/getx_integration.dart` - GetX state management (NEW)
+- `lib/src/integrations/integration_manager.dart` - Unified integration manager
+- `test/integrations_test.dart` - Comprehensive integration test suite
+- `example/lib/integrations_example.dart` - Complete usage demonstrations
+
 ## [0.6.0] - 2025-01-23
 
 ### 🧼 Added - Enhanced API Ergonomics
