@@ -18,6 +18,19 @@ This tool aims to provide an elegant and maintainable solution to the above prob
 
 > **Note**: While Dart Confidential certainly makes the static analysis of the code more challenging, **it is by no means the only code hardening technique that you should employ to protect your app against reverse engineering and tampering**. To achieve a decent level of security, we highly encourage you to supplement this tool's security measures with **runtime application self-protection (RASP) checks**, as well as **Dart code obfuscation**. With that said, no security measure can ever guarantee absolute security. Any motivated and skilled enough attacker will eventually bypass all security protections. For this reason, **always keep your threat models up to date**.
 
+## ✨ Features
+
+- **🔐 Multi-Algorithm Obfuscation**: Supports AES-256-GCM, ChaCha20-Poly1305, XOR, and compression
+- **🎯 Type-Safe API**: Strongly typed obfuscated values with compile-time safety
+- **🔄 Asynchronous Loading**: Non-blocking secret loading with caching and retry mechanisms
+- **📊 Analytics & Audit Logging**: Comprehensive access tracking with suspicious activity detection
+- **🌐 Platform-Aware Security**: Web-specific warnings and platform-optimized protection
+- **🔗 Popular Integrations**: Built-in support for Dio, Provider, Riverpod, GetIt, BLoC, and GetX
+- **🧰 CLI & Build-Time Integration**: Complete toolchain for build-time secret management
+- **🔄 Build Runner Support**: Automatic code generation with platform-aware optimizations
+- **⚡ High Performance**: Optimized algorithms with minimal runtime overhead
+- **🛡️ Security-First Design**: Defense against static analysis and reverse engineering
+
 ## Getting Started
 
 Begin by creating a `confidential.yaml` YAML configuration file in the root directory of your Dart project. At minimum, the configuration must contain obfuscation algorithm and one or more secret definitions.
@@ -803,6 +816,168 @@ flutter run
 ```
 
 The example app demonstrates how to use obfuscated literals in a real Flutter application.
+
+## 🧰 CLI & Build-Time Integration
+
+Dart Confidential includes a comprehensive CLI tool for build-time secret management and integration with your development workflow.
+
+### Installation & Setup
+
+Initialize your project with platform-specific configuration:
+
+```bash
+# Initialize a Flutter project
+dart run dart-confidential init --project-type flutter
+
+# Initialize with build_runner integration
+dart run dart-confidential init --with-build-runner --with-examples
+```
+
+### CLI Commands
+
+#### 🚀 Project Initialization
+```bash
+# Initialize with platform detection and examples
+dart run dart-confidential init --project-type flutter --with-examples
+
+# Initialize for different project types
+dart run dart-confidential init --project-type dart
+dart run dart-confidential init --project-type package
+```
+
+#### ⚙️ Code Generation
+```bash
+# Generate obfuscated Dart code
+dart run dart-confidential obfuscate --config confidential.yaml
+
+# Watch mode for development
+dart run dart-confidential obfuscate --watch
+
+# Different output formats
+dart run dart-confidential obfuscate --format json
+dart run dart-confidential obfuscate --format yaml --minify
+```
+
+#### 📦 Asset Generation
+```bash
+# Generate encrypted asset files
+dart run dart-confidential generate-assets --output-dir assets/encrypted
+
+# Generate compressed binary assets
+dart run dart-confidential generate-assets --format binary --compress
+
+# Generate with manifest
+dart run dart-confidential generate-assets --manifest assets_manifest.json
+```
+
+#### 🌍 Environment Files
+```bash
+# Generate .env files
+dart run dart-confidential generate-env --format dotenv --environment production
+
+# Generate JSON environment files
+dart run dart-confidential generate-env --format json --include-metadata
+
+# Generate shell scripts
+dart run dart-confidential generate-env --format shell --prefix "MYAPP_"
+```
+
+#### 💉 Build-Time Injection
+```bash
+# Inject secrets at compile time
+dart run dart-confidential inject-secrets --target flutter --injection-method compile-time
+
+# Runtime injection with assets
+dart run dart-confidential inject-secrets --injection-method runtime
+
+# Hybrid approach (recommended)
+dart run dart-confidential inject-secrets --injection-method hybrid --platform android
+```
+
+#### ✅ Validation
+```bash
+# Validate configuration
+dart run dart-confidential validate --config confidential.yaml
+
+# Strict validation with auto-fix
+dart run dart-confidential validate --strict --fix
+
+# Platform-specific validation
+dart run dart-confidential validate --check-platform --check-algorithms
+```
+
+### Build Runner Integration
+
+Configure automatic code generation in `build.yaml`:
+
+```yaml
+targets:
+  $default:
+    builders:
+      confidential|confidential_builder:
+        enabled: true
+        options:
+          config_file: confidential.yaml
+          output_file: lib/generated/confidential.dart
+          generate_assets: true
+          assets_dir: assets/encrypted
+          generate_env: true
+          env_format: dotenv
+```
+
+Then run:
+
+```bash
+# One-time build
+dart run build_runner build
+
+# Watch mode
+dart run build_runner watch
+
+# Clean and rebuild
+dart run build_runner clean
+dart run build_runner build --delete-conflicting-outputs
+```
+
+### Complete Workflow Example
+
+```bash
+# 1. Initialize project
+dart run dart-confidential init --project-type flutter --with-build-runner
+
+# 2. Edit confidential.yaml with your secrets
+# (Add your API keys, database passwords, etc.)
+
+# 3. Generate code
+dart run dart-confidential obfuscate
+
+# 4. Generate assets for runtime loading
+dart run dart-confidential generate-assets --format binary --split
+
+# 5. Generate environment files
+dart run dart-confidential generate-env --format dotenv --environment production
+
+# 6. Validate configuration
+dart run dart-confidential validate --strict
+
+# 7. Build with build_runner (automatic)
+dart run build_runner build
+
+# 8. Inject secrets for production build
+dart run dart-confidential inject-secrets --target flutter --injection-method hybrid
+
+# 9. Build your app
+flutter build apk --release
+```
+
+### Platform-Specific Features
+
+The CLI automatically detects your target platform and provides:
+
+- **🌐 Web Platform**: Security warnings about JavaScript compilation limitations
+- **📱 Mobile Platforms**: Optimized obfuscation for iOS and Android
+- **🖥️ Desktop Platforms**: Enhanced security for native applications
+- **🔧 Development Mode**: Additional debugging and validation features
 
 ## Security Considerations
 

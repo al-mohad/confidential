@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-01-24
+
+### 🧰 Added - CLI & Build-Time Integration System
+- **Comprehensive CLI Tool**: Complete command-line interface with 6 commands for build-time secret management
+- **Project Initialization**: `init` command with platform-specific setup and configuration templates
+- **Code Generation**: Enhanced `obfuscate` command with multiple output formats (Dart, JSON, YAML)
+- **Asset Generation**: `generate-assets` command for encrypted binary/JSON asset files with compression
+- **Environment Files**: `generate-env` command supporting dotenv, JSON, YAML, and shell formats
+- **Secret Injection**: `inject-secrets` command for compile-time, runtime, and hybrid injection strategies
+- **Configuration Validation**: `validate` command with strict mode, auto-fixes, and platform security checks
+
+### 🔄 Enhanced - Build Runner Integration
+- **Platform-Aware Builder**: Enhanced `confidential_builder.dart` with automatic platform detection
+- **Multi-Format Generation**: Configurable asset and environment file generation during build
+- **Web Security Warnings**: Automatic warnings for web platform deployments
+- **Build Configuration**: Flexible `build.yaml` options for output paths and generation settings
+- **Error Handling**: Comprehensive error reporting and validation during build process
+
+### 🛠️ Build-Time Features
+- **Watch Mode**: Automatic regeneration on configuration file changes
+- **Minification**: Optional code minification for production builds
+- **Compression**: Asset compression with gzip for reduced file sizes
+- **Manifest Generation**: Asset manifest files for runtime loading
+- **Platform Injection**: Different injection strategies per target platform
+- **Validation Pipeline**: Pre-build validation with configurable strictness levels
+
+### 📦 CLI Commands & Usage
+- `dart run dart-confidential init` - Initialize project with platform-specific setup
+- `dart run dart-confidential obfuscate` - Generate obfuscated code with watch mode
+- `dart run dart-confidential generate-assets` - Create encrypted asset files
+- `dart run dart-confidential generate-env` - Generate environment files
+- `dart run dart-confidential inject-secrets` - Inject secrets at build time
+- `dart run dart-confidential validate` - Validate configuration and security
+
+### 🧪 Quality Assurance
+- **16 CLI Tests**: Comprehensive testing of all CLI commands and functionality
+- **Build Integration Tests**: Validation of build_runner integration and asset generation
+- **Platform-Specific Testing**: Tests covering web, mobile, and desktop scenarios
+- **Error Handling Tests**: Validation of error cases and recovery mechanisms
+
+### 🔧 Developer Experience
+- **Executable Binary**: `bin/dart_confidential.dart` for direct CLI usage
+- **Help System**: Comprehensive help for all commands with usage examples
+- **Verbose Logging**: Detailed output for debugging and monitoring
+- **Auto-completion**: Command and option suggestions for improved workflow
+
 ## [0.9.0] - 2025-01-24
 
 ### 📱 Added - Platform-Specific Support & Web Handling
