@@ -1,17 +1,17 @@
 /// BLoC pattern integration for dart-confidential.
-/// 
+///
 /// This module provides seamless integration with BLoC/Cubit,
 /// allowing injection of obfuscated secrets into BLoCs and Cubits.
 library;
 
 import 'dart:async';
 
-import '../obfuscation/secret.dart';
 import '../async/async_obfuscated.dart';
 import '../async/secret_providers.dart';
+import '../obfuscation/secret.dart';
 
 /// BLoC-like interfaces to avoid hard dependency.
-/// 
+///
 /// These allow the integration to work without requiring bloc as a dependency.
 
 /// Stream interface for BLoC compatibility.
@@ -23,16 +23,16 @@ abstract class StreamLike<T> {
     void Function()? onDone,
     bool? cancelOnError,
   });
-  
+
   /// Maps the stream to another type.
   StreamLike<R> map<R>(R Function(T) mapper);
-  
+
   /// Filters the stream.
   StreamLike<T> where(bool Function(T) test);
-  
+
   /// Gets the first value.
   Future<T> get first;
-  
+
   /// Gets the last value.
   Future<T> get last;
 }
@@ -41,10 +41,10 @@ abstract class StreamLike<T> {
 abstract class SinkLike<T> {
   /// Adds data to the sink.
   void add(T data);
-  
+
   /// Adds an error to the sink.
   void addError(Object error, [StackTrace? stackTrace]);
-  
+
   /// Closes the sink.
   Future<void> close();
 }
@@ -53,13 +53,13 @@ abstract class SinkLike<T> {
 abstract class BlocBaseLike<State> {
   /// The current state.
   State get state;
-  
+
   /// Stream of state changes.
   StreamLike<State> get stream;
-  
+
   /// Whether the BLoC is closed.
   bool get isClosed;
-  
+
   /// Closes the BLoC.
   Future<void> close();
 }
@@ -117,10 +117,12 @@ class SecretBloc implements BlocBaseLike<SecretState> {
   final Map<String, ObfuscatedValue> _staticSecrets = {};
   final Map<String, AsyncObfuscatedValue> _asyncSecrets = {};
   final Map<String, dynamic> _loadedValues = {};
-  
-  final StreamController<SecretEvent> _eventController = StreamController<SecretEvent>();
-  final StreamController<SecretState> _stateController = StreamController<SecretState>.broadcast();
-  
+
+  final StreamController<SecretEvent> _eventController =
+      StreamController<SecretEvent>();
+  final StreamController<SecretState> _stateController =
+      StreamController<SecretState>.broadcast();
+
   SecretState _currentState = SecretInitialState();
   bool _isClosed = false;
 
@@ -201,7 +203,7 @@ class SecretBloc implements BlocBaseLike<SecretState> {
 
   Future<void> _handleLoadSecret(LoadSecretEvent event) async {
     final secretName = event.secretName;
-    
+
     // Check if it's a static secret
     final staticSecret = _staticSecrets[secretName];
     if (staticSecret != null) {
@@ -215,7 +217,7 @@ class SecretBloc implements BlocBaseLike<SecretState> {
     final asyncSecret = _asyncSecrets[secretName];
     if (asyncSecret != null) {
       _emitState(SecretLoadingState(secretName));
-      
+
       final value = await asyncSecret.value;
       _loadedValues[secretName] = value;
       _emitState(SecretLoadedState(secretName, value));
@@ -227,33 +229,38 @@ class SecretBloc implements BlocBaseLike<SecretState> {
 
   Future<void> _handleRefreshSecret(RefreshSecretEvent event) async {
     final secretName = event.secretName;
-    
+
     // Only async secrets can be refreshed
     final asyncSecret = _asyncSecrets[secretName];
     if (asyncSecret != null) {
       _emitState(SecretLoadingState(secretName));
-      
+
       asyncSecret.clearCache();
       final value = await asyncSecret.value;
       _loadedValues[secretName] = value;
       _emitState(SecretLoadedState(secretName, value));
     } else {
-      throw ArgumentError('Secret "$secretName" is not an async secret or not found');
+      throw ArgumentError(
+        'Secret "$secretName" is not an async secret or not found',
+      );
     }
   }
 
   Future<void> _handleRefreshAllSecrets() async {
     final futures = <Future>[];
-    
+
     for (final entry in _asyncSecrets.entries) {
       futures.add(_refreshAsyncSecret(entry.key, entry.value));
     }
-    
+
     await Future.wait(futures);
     _emitState(MultipleSecretsLoadedState(Map.from(_loadedValues)));
   }
 
-  Future<void> _refreshAsyncSecret(String name, AsyncObfuscatedValue secret) async {
+  Future<void> _refreshAsyncSecret(
+    String name,
+    AsyncObfuscatedValue secret,
+  ) async {
     try {
       secret.clearCache();
       final value = await secret.value;
@@ -286,20 +293,21 @@ class SecretCubit<T> implements CubitLike<SecretState> {
   final String secretName;
   final AsyncObfuscatedValue<T>? _asyncSecret;
   final ObfuscatedValue<T>? _staticSecret;
-  
-  final StreamController<SecretState> _stateController = StreamController<SecretState>.broadcast();
+
+  final StreamController<SecretState> _stateController =
+      StreamController<SecretState>.broadcast();
   SecretState _currentState = SecretInitialState();
   bool _isClosed = false;
 
   SecretCubit.static(this.secretName, ObfuscatedValue<T> secret)
-      : _staticSecret = secret,
-        _asyncSecret = null {
+    : _staticSecret = secret,
+      _asyncSecret = null {
     _loadStaticSecret();
   }
 
   SecretCubit.async(this.secretName, AsyncObfuscatedValue<T> secret)
-      : _asyncSecret = secret,
-        _staticSecret = null {
+    : _asyncSecret = secret,
+      _staticSecret = null {
     _loadAsyncSecret();
   }
 
@@ -368,9 +376,9 @@ class SecretCubit<T> implements CubitLike<SecretState> {
 
   Future<void> _loadAsyncSecret() async {
     emit(SecretLoadingState(secretName));
-    
+
     try {
-      _asyncSecret!.clearCache();
+      _asyncSecret?.clearCache();
       final value = await _asyncSecret!.value;
       emit(SecretLoadedState<T>(secretName, value));
     } catch (e, st) {
@@ -433,19 +441,19 @@ class ConfidentialBlocFactory {
     Map<String, AsyncObfuscatedValue>? asyncSecrets,
   }) {
     final bloc = SecretBloc();
-    
+
     if (staticSecrets != null) {
       for (final entry in staticSecrets.entries) {
         bloc.addStaticSecret(entry.key, entry.value);
       }
     }
-    
+
     if (asyncSecrets != null) {
       for (final entry in asyncSecrets.entries) {
         bloc.addAsyncSecret(entry.key, entry.value);
       }
     }
-    
+
     return bloc;
   }
 
@@ -471,17 +479,17 @@ class ConfidentialBlocFactory {
     required Map<String, String> secretNames, // name -> algorithm
   }) async {
     final bloc = SecretBloc();
-    
+
     for (final entry in secretNames.entries) {
       final asyncSecret = AsyncObfuscatedString(
         secretName: entry.key,
         provider: secretProvider,
         algorithm: entry.value,
       );
-      
+
       bloc.addAsyncSecret(entry.key, asyncSecret);
     }
-    
+
     return bloc;
   }
 }

@@ -9,7 +9,7 @@ import '../../confidential.dart';
 /// Base class for expirable obfuscated values.
 abstract class ExpirableObfuscatedValue<T> {
   /// The expirable secret container.
-  ExpirableSecret _expirableSecret;
+  final ExpirableSecret _expirableSecret;
 
   /// The deobfuscation function.
   final DeobfuscationFunction<T> deobfuscate;

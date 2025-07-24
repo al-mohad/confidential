@@ -444,6 +444,7 @@ class ExpiryAwareHttpSecretProvider extends HttpSecretProvider
   }
 
   /// Closes the HTTP client.
+  @override
   void close() {
     _httpClient.close();
     super.close();

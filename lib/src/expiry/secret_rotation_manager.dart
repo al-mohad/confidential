@@ -5,27 +5,25 @@ import 'dart:async';
 import 'dart:collection';
 
 import '../async/secret_providers.dart';
-import '../obfuscation/secret.dart';
-import 'expirable_secret.dart';
 import 'expirable_obfuscated.dart';
+import 'expirable_secret.dart';
 
-/// Configuration for secret rotation.
 class SecretRotationConfig {
   /// Default TTL for new secrets.
   final Duration defaultTTL;
-  
+
   /// How often to check for expired secrets.
   final Duration checkInterval;
-  
+
   /// Whether to automatically rotate secrets.
   final bool autoRotate;
-  
+
   /// Maximum number of concurrent rotations.
   final int maxConcurrentRotations;
-  
+
   /// Whether to preload rotated secrets.
   final bool preloadRotatedSecrets;
-  
+
   /// Grace period for old secrets after rotation.
   final Duration rotationGracePeriod;
 
@@ -43,19 +41,19 @@ class SecretRotationConfig {
 class SecretRotationEvent {
   /// The name of the secret that was rotated.
   final String secretName;
-  
+
   /// The type of rotation event.
   final SecretRotationEventType type;
-  
+
   /// The old secret (if available).
   final ExpirableSecret? oldSecret;
-  
+
   /// The new secret (if available).
   final ExpirableSecret? newSecret;
-  
+
   /// Error message if rotation failed.
   final String? error;
-  
+
   /// When the event occurred.
   final DateTime timestamp;
 
@@ -73,25 +71,25 @@ class SecretRotationEvent {
 enum SecretRotationEventType {
   /// Secret rotation started.
   rotationStarted,
-  
+
   /// Secret rotation completed successfully.
   rotationCompleted,
-  
+
   /// Secret rotation failed.
   rotationFailed,
-  
+
   /// Secret expired.
   secretExpired,
-  
+
   /// Secret near expiry.
   secretNearExpiry,
-  
+
   /// Secret refresh started.
   refreshStarted,
-  
+
   /// Secret refresh completed.
   refreshCompleted,
-  
+
   /// Secret refresh failed.
   refreshFailed,
 }
@@ -100,30 +98,27 @@ enum SecretRotationEventType {
 class SecretRotationManager {
   final SecretRotationConfig config;
   final SecretProvider secretProvider;
-  
+
   /// Map of managed secrets.
   final Map<String, ExpirableObfuscatedValue> _managedSecrets = {};
-  
+
   /// Map of secret refresh callbacks.
   final Map<String, SecretRefreshCallback> _refreshCallbacks = {};
-  
+
   /// Stream controller for rotation events.
-  final StreamController<SecretRotationEvent> _eventController = 
+  final StreamController<SecretRotationEvent> _eventController =
       StreamController<SecretRotationEvent>.broadcast();
-  
+
   /// Timer for periodic expiry checks.
   Timer? _checkTimer;
-  
+
   /// Set of secrets currently being rotated.
   final Set<String> _rotatingSecrets = <String>{};
-  
+
   /// Queue of pending rotations.
   final Queue<String> _rotationQueue = Queue<String>();
 
-  SecretRotationManager({
-    required this.config,
-    required this.secretProvider,
-  }) {
+  SecretRotationManager({required this.config, required this.secretProvider}) {
     _startPeriodicChecks();
   }
 
@@ -137,7 +132,7 @@ class SecretRotationManager {
     SecretRefreshCallback? refreshCallback,
   }) {
     _managedSecrets[name] = secret;
-    
+
     if (refreshCallback != null) {
       _refreshCallbacks[name] = refreshCallback;
       secret.setRefreshCallback(refreshCallback);
@@ -150,13 +145,15 @@ class SecretRotationManager {
 
     // Set expiry callback
     secret.setExpiryCallback((secretName, expirableSecret) async {
-      _emitEvent(SecretRotationEvent(
-        secretName: secretName,
-        type: expirableSecret.isHardExpired 
-            ? SecretRotationEventType.secretExpired
-            : SecretRotationEventType.secretNearExpiry,
-        oldSecret: expirableSecret,
-      ));
+      _emitEvent(
+        SecretRotationEvent(
+          secretName: secretName,
+          type: expirableSecret.isHardExpired
+              ? SecretRotationEventType.secretExpired
+              : SecretRotationEventType.secretNearExpiry,
+          oldSecret: expirableSecret,
+        ),
+      );
     });
   }
 
@@ -177,9 +174,13 @@ class SecretRotationManager {
   List<String> listSecrets() => _managedSecrets.keys.toList();
 
   /// Gets secrets by expiry status.
-  Map<String, ExpirableObfuscatedValue> getSecretsByStatus(SecretExpiryStatus status) {
+  Map<String, ExpirableObfuscatedValue> getSecretsByStatus(
+    SecretExpiryStatus status,
+  ) {
     return Map.fromEntries(
-      _managedSecrets.entries.where((entry) => entry.value.expiryStatus == status),
+      _managedSecrets.entries.where(
+        (entry) => entry.value.expiryStatus == status,
+      ),
     );
   }
 
@@ -201,9 +202,9 @@ class SecretRotationManager {
   Future<void> rotateExpiredSecrets() async {
     final expiredSecrets = getSecretsByStatus(SecretExpiryStatus.expired);
     final nearExpirySecrets = getSecretsByStatus(SecretExpiryStatus.nearExpiry);
-    
+
     final toRotate = {...expiredSecrets.keys, ...nearExpirySecrets.keys};
-    
+
     for (final name in toRotate) {
       if (_rotatingSecrets.length < config.maxConcurrentRotations) {
         unawaited(_performRotation(name));
@@ -240,40 +241,48 @@ class SecretRotationManager {
   /// Performs rotation for a specific secret.
   Future<bool> _performRotation(String name) async {
     if (_rotatingSecrets.contains(name)) return false;
-    
+
     _rotatingSecrets.add(name);
-    
+
     try {
-      _emitEvent(SecretRotationEvent(
-        secretName: name,
-        type: SecretRotationEventType.rotationStarted,
-      ));
+      _emitEvent(
+        SecretRotationEvent(
+          secretName: name,
+          type: SecretRotationEventType.rotationStarted,
+        ),
+      );
 
       final secret = _managedSecrets[name];
       if (secret == null) return false;
 
       final success = await secret.refresh();
-      
+
       if (success) {
-        _emitEvent(SecretRotationEvent(
-          secretName: name,
-          type: SecretRotationEventType.rotationCompleted,
-        ));
+        _emitEvent(
+          SecretRotationEvent(
+            secretName: name,
+            type: SecretRotationEventType.rotationCompleted,
+          ),
+        );
       } else {
-        _emitEvent(SecretRotationEvent(
-          secretName: name,
-          type: SecretRotationEventType.rotationFailed,
-          error: 'Refresh returned false',
-        ));
+        _emitEvent(
+          SecretRotationEvent(
+            secretName: name,
+            type: SecretRotationEventType.rotationFailed,
+            error: 'Refresh returned false',
+          ),
+        );
       }
 
       return success;
     } catch (e) {
-      _emitEvent(SecretRotationEvent(
-        secretName: name,
-        type: SecretRotationEventType.rotationFailed,
-        error: e.toString(),
-      ));
+      _emitEvent(
+        SecretRotationEvent(
+          secretName: name,
+          type: SecretRotationEventType.rotationFailed,
+          error: e.toString(),
+        ),
+      );
       return false;
     } finally {
       _rotatingSecrets.remove(name);
@@ -285,37 +294,45 @@ class SecretRotationManager {
   SecretRefreshCallback _createDefaultRefreshCallback(String name) {
     return (secretName, expirableSecret) async {
       try {
-        _emitEvent(SecretRotationEvent(
-          secretName: secretName,
-          type: SecretRotationEventType.refreshStarted,
-        ));
+        _emitEvent(
+          SecretRotationEvent(
+            secretName: secretName,
+            type: SecretRotationEventType.refreshStarted,
+          ),
+        );
 
         final newSecret = await secretProvider.loadSecret(name);
-        
+
         if (newSecret != null) {
-          _emitEvent(SecretRotationEvent(
-            secretName: secretName,
-            type: SecretRotationEventType.refreshCompleted,
-            newSecret: ExpirableSecret(
-              secret: newSecret,
-              config: expirableSecret.config,
+          _emitEvent(
+            SecretRotationEvent(
+              secretName: secretName,
+              type: SecretRotationEventType.refreshCompleted,
+              newSecret: ExpirableSecret(
+                secret: newSecret,
+                config: expirableSecret.config,
+              ),
             ),
-          ));
+          );
         } else {
-          _emitEvent(SecretRotationEvent(
-            secretName: secretName,
-            type: SecretRotationEventType.refreshFailed,
-            error: 'Provider returned null',
-          ));
+          _emitEvent(
+            SecretRotationEvent(
+              secretName: secretName,
+              type: SecretRotationEventType.refreshFailed,
+              error: 'Provider returned null',
+            ),
+          );
         }
 
         return newSecret;
       } catch (e) {
-        _emitEvent(SecretRotationEvent(
-          secretName: secretName,
-          type: SecretRotationEventType.refreshFailed,
-          error: e.toString(),
-        ));
+        _emitEvent(
+          SecretRotationEvent(
+            secretName: secretName,
+            type: SecretRotationEventType.refreshFailed,
+            error: e.toString(),
+          ),
+        );
         return null;
       }
     };
@@ -332,8 +349,8 @@ class SecretRotationManager {
 
   /// Processes the rotation queue.
   void _processRotationQueue() {
-    while (_rotationQueue.isNotEmpty && 
-           _rotatingSecrets.length < config.maxConcurrentRotations) {
+    while (_rotationQueue.isNotEmpty &&
+        _rotatingSecrets.length < config.maxConcurrentRotations) {
       final name = _rotationQueue.removeFirst();
       unawaited(_performRotation(name));
     }
@@ -358,9 +375,4 @@ class SecretRotationManager {
     _rotationQueue.clear();
     _eventController.close();
   }
-}
-
-/// Extension to avoid unawaited_futures warnings.
-extension _FutureExtension on Future {
-  void get unawaited {}
 }
