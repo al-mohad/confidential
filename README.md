@@ -385,6 +385,187 @@ final filtered = manager.getSecrets(SecretFilter(
 ));
 ```
 
+## 🧩 Popular Package Integrations
+
+Dart Confidential provides seamless integration with popular packages for dependency injection, state management, and HTTP clients:
+
+### 🌐 Dio HTTP Client Integration
+
+Automatically inject encrypted tokens into HTTP requests:
+
+```dart
+// Setup Dio with confidential token injection
+final dio = Dio();
+final interceptor = dio.addConfidentialTokens(
+  config: DioIntegrationConfig(
+    authHeaderName: 'Authorization',
+    tokenPrefix: 'Bearer ',
+    enableLogging: true,
+  ),
+);
+
+// Add tokens from various sources
+interceptor.addStaticToken('auth', authToken.obfuscate(algorithm: 'aes-256-gcm'));
+interceptor.addAsyncToken('api-key', asyncApiKey);
+interceptor.addDynamicToken('session', () => getCurrentSessionId());
+
+// All requests automatically include encrypted tokens
+final response = await dio.get('/api/user/profile');
+```
+
+### 📦 Provider Integration
+
+Inject secrets via Provider dependency injection:
+
+```dart
+// Create Provider-compatible secret manager
+final manager = ConfidentialProviderFactory.createManager();
+manager.addStatic('jwtSecret', jwtSecret.obfuscate(algorithm: 'aes-256-gcm'));
+manager.addAsync('databaseUrl', asyncDatabaseUrl);
+
+// In your widget tree
+ChangeNotifierProvider(
+  create: (_) => manager,
+  child: MyApp(),
+)
+
+// In your widgets
+Consumer<SecretManagerProvider>(
+  builder: (context, secrets, child) {
+    final jwt = secrets.getStaticValue<String>("jwtSecret");
+    return Text("JWT: ${jwt?.substring(0, 10)}...");
+  },
+)
+```
+
+### 🎣 Riverpod Integration
+
+Use secrets with Riverpod providers:
+
+```dart
+// Define providers
+final apiKeyProvider = ConfidentialRiverpodFactory.createStatic(
+  apiKeySecret, name: "apiKey");
+
+final asyncSecretProvider = ConfidentialRiverpodFactory.createAsync(
+  asyncSecret, name: "asyncSecret");
+
+// In your widgets
+Consumer(builder: (context, ref, child) {
+  final apiKey = ref.watch(apiKeyProvider);
+  return Text("API Key: ${apiKey.substring(0, 10)}...");
+});
+
+// For async providers
+Consumer(builder: (context, ref, child) {
+  final asyncValue = ref.watch(asyncSecretProvider);
+  return asyncValue.when(
+    data: (secret) => Text("Secret: $secret"),
+    loading: () => CircularProgressIndicator(),
+    error: (err, stack) => Text("Error: $err"),
+  );
+});
+```
+
+### 🔧 GetIt Service Locator Integration
+
+Register secrets with GetIt:
+
+```dart
+// Setup GetIt with confidential secrets
+await ConfidentialGetItFactory.setupWithProvider(
+  getIt: GetIt.instance,
+  secretProvider: yourSecretProvider,
+  secretNames: {"apiKey": "aes-256-gcm"},
+);
+
+// Access anywhere in your app
+final apiKey = await GetIt.instance.getAsyncObfuscated<String>("apiKey");
+final staticSecret = GetIt.instance.getObfuscated<String>("staticSecret");
+```
+
+### 🏗️ BLoC State Management Integration
+
+Manage secrets with BLoC pattern:
+
+```dart
+// Create BLoC with secrets
+final secretBloc = ConfidentialBlocFactory.createBloc();
+secretBloc.addStaticSecret('sessionKey', sessionKey);
+secretBloc.add(LoadSecretEvent('userToken'));
+
+// In your widget
+BlocBuilder<SecretBloc, SecretState>(
+  builder: (context, state) {
+    if (state is SecretLoadedState<String>) {
+      return Text("Secret: ${state.value}");
+    } else if (state is SecretLoadingState) {
+      return CircularProgressIndicator();
+    } else if (state is SecretErrorState) {
+      return Text("Error: ${state.error}");
+    }
+    return Text("No secret loaded");
+  },
+)
+```
+
+### 🎯 GetX Integration
+
+Reactive secret management with GetX:
+
+```dart
+// Create GetX service
+final secretService = ConfidentialGetXFactory.createService();
+secretService.addStaticSecret('sessionKey', sessionKey);
+secretService.addAsyncSecret('authToken', asyncAuthToken);
+
+// In your GetX controller
+class MyController extends GetxController {
+  final secretService = Get.find<SecretService>();
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Access secrets reactively
+    final apiKey = secretService.getRx<String>("apiKey");
+    apiKey?.listen((value) => print("API key updated: $value"));
+  }
+}
+
+// In your widgets with reactive updates
+Obx(() {
+  final apiKey = secretService.getStatic<String>("apiKey");
+  return Text("API Key: ${apiKey?.substring(0, 10)}...");
+});
+```
+
+### 🎛️ Unified Integration Manager
+
+Manage all integrations from a single interface:
+
+```dart
+// Create manager with all integrations enabled
+final manager = ConfidentialIntegrationFactory.createFullIntegration();
+await manager.initialize(
+  dioInstance: dio,
+  getItInstance: GetIt.instance,
+  secretProvider: yourProvider,
+  secretNames: {"apiKey": "aes-256-gcm"},
+);
+
+// Add secrets to all integrations at once
+manager.addStaticSecret("newSecret", obfuscatedValue);
+
+// Access different integrations
+final providerManager = manager.providerManager;
+final secretBloc = manager.secretBloc;
+final dioInterceptor = manager.dioInterceptor;
+final getXService = manager.getXService;
+
+// Refresh all secrets across all integrations
+await manager.refreshAllSecrets();
+```
+
 ## Usage
 
 ### Build Runner Integration (Recommended)
