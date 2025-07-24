@@ -49,5 +49,7 @@ export 'src/integrations/bloc_integration.dart';
 export 'src/integrations/getx_integration.dart';
 export 'src/integrations/integration_manager.dart';
 
-// Note: CLI and configuration modules are not exported for web compatibility
-// They can be imported directly when needed in non-web environments
+// CLI and build-time integration (not available on web)
+// Use direct imports for CLI tools in non-web environments:
+// import 'package:confidential/src/cli/cli.dart';
+// import 'package:confidential/src/builder/confidential_builder.dart';
