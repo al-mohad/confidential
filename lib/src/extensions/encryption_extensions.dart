@@ -99,7 +99,7 @@ extension SecretDecryption on Secret {
   ///
   /// Example:
   /// ```dart
-  /// final decrypted = secret.decrypt<String>(algorithm: 'aes-256-gcm');
+  /// final decrypted = secret.decrypt&lt;String&gt;(algorithm: 'aes-256-gcm');
   /// ```
   T decrypt<T>({required String algorithm}) {
     final encryptionAlgorithm = EncryptionFactory.create(algorithm);

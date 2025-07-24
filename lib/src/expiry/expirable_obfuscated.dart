@@ -4,8 +4,7 @@ library;
 import 'dart:async';
 import 'dart:convert';
 
-import '../obfuscation/encryption/encryption.dart';
-import '../obfuscation/secret.dart';
+import '../../confidential.dart';
 
 /// Base class for expirable obfuscated values.
 abstract class ExpirableObfuscatedValue<T> {
@@ -61,12 +60,6 @@ abstract class ExpirableObfuscatedValue<T> {
 
   /// Manually triggers a refresh.
   Future<bool> refresh() => _expirableSecret.refresh(secretName);
-
-  /// Updates the underlying secret (used during refresh).
-  void _updateSecret(ExpirableSecret newSecret) {
-    _expirableSecret.dispose();
-    _expirableSecret = newSecret;
-  }
 
   /// Disposes resources.
   void dispose() {

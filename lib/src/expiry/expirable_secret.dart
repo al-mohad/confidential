@@ -2,36 +2,37 @@
 library;
 
 import 'dart:async';
-import 'dart:typed_data';
 
 import '../obfuscation/secret.dart';
 
 /// Callback function for when a secret expires.
-typedef SecretExpiryCallback = Future<void> Function(String secretName, ExpirableSecret secret);
+typedef SecretExpiryCallback =
+    Future<void> Function(String secretName, ExpirableSecret secret);
 
 /// Callback function for when a secret needs refresh.
-typedef SecretRefreshCallback = Future<Secret?> Function(String secretName, ExpirableSecret secret);
+typedef SecretRefreshCallback =
+    Future<Secret?> Function(String secretName, ExpirableSecret secret);
 
 /// Configuration for secret expiry behavior.
 class SecretExpiryConfig {
   /// Time-to-live for the secret.
   final Duration? ttl;
-  
+
   /// Absolute expiry timestamp.
   final DateTime? expiresAt;
-  
+
   /// Grace period before hard expiry.
   final Duration gracePeriod;
-  
+
   /// Whether to auto-refresh before expiry.
   final bool autoRefresh;
-  
+
   /// How early to trigger refresh before expiry.
   final Duration refreshThreshold;
-  
+
   /// Maximum number of refresh attempts.
   final int maxRefreshAttempts;
-  
+
   /// Delay between refresh attempts.
   final Duration refreshRetryDelay;
 
@@ -46,7 +47,8 @@ class SecretExpiryConfig {
   });
 
   /// Creates config with TTL from now.
-  factory SecretExpiryConfig.withTTL(Duration ttl, {
+  factory SecretExpiryConfig.withTTL(
+    Duration ttl, {
     Duration gracePeriod = const Duration(minutes: 5),
     bool autoRefresh = true,
     Duration refreshThreshold = const Duration(minutes: 10),
@@ -61,7 +63,8 @@ class SecretExpiryConfig {
   }
 
   /// Creates config with absolute expiry time.
-  factory SecretExpiryConfig.withExpiryTime(DateTime expiresAt, {
+  factory SecretExpiryConfig.withExpiryTime(
+    DateTime expiresAt, {
     Duration gracePeriod = const Duration(minutes: 5),
     bool autoRefresh = true,
     Duration refreshThreshold = const Duration(minutes: 10),
@@ -79,19 +82,19 @@ class SecretExpiryConfig {
 enum SecretExpiryStatus {
   /// Secret is valid and not near expiry.
   valid,
-  
+
   /// Secret is near expiry and should be refreshed.
   nearExpiry,
-  
+
   /// Secret has expired but is in grace period.
   expired,
-  
+
   /// Secret has hard expired and cannot be used.
   hardExpired,
-  
+
   /// Secret is being refreshed.
   refreshing,
-  
+
   /// Secret refresh failed.
   refreshFailed,
 }
@@ -100,31 +103,28 @@ enum SecretExpiryStatus {
 class ExpirableSecret {
   /// The underlying secret data.
   final Secret _secret;
-  
+
   /// Expiry configuration.
   final SecretExpiryConfig config;
-  
+
   /// When this secret was created.
   final DateTime createdAt;
-  
-  /// When this secret was last accessed.
-  DateTime _lastAccessedAt;
-  
+
   /// Current expiry status.
   SecretExpiryStatus _status;
-  
+
   /// Refresh callback for automatic renewal.
   SecretRefreshCallback? _refreshCallback;
-  
+
   /// Expiry callback for notifications.
   SecretExpiryCallback? _expiryCallback;
-  
+
   /// Timer for automatic refresh.
   Timer? _refreshTimer;
-  
+
   /// Current refresh attempt count.
   int _refreshAttempts = 0;
-  
+
   /// Whether refresh is in progress.
   bool _isRefreshing = false;
 
@@ -143,11 +143,11 @@ class ExpirableSecret {
   Secret get secret {
     _lastAccessedAt = DateTime.now();
     _updateStatus();
-    
+
     if (_status == SecretExpiryStatus.hardExpired) {
       throw SecretExpiredException('Secret has expired and cannot be accessed');
     }
-    
+
     return _secret;
   }
 
@@ -226,15 +226,12 @@ class ExpirableSecret {
       final newSecret = await _refreshCallback!(secretName, this);
       if (newSecret != null) {
         // Create new expirable secret with refreshed data
-        final newExpirable = ExpirableSecret(
-          secret: newSecret,
-          config: config,
-        );
-        
+        final newExpirable = ExpirableSecret(secret: newSecret, config: config);
+
         // Copy callbacks
         newExpirable._refreshCallback = _refreshCallback;
         newExpirable._expiryCallback = _expiryCallback;
-        
+
         _refreshAttempts = 0;
         _status = SecretExpiryStatus.valid;
         return true;
@@ -242,7 +239,7 @@ class ExpirableSecret {
     } catch (e) {
       _refreshAttempts++;
       _status = SecretExpiryStatus.refreshFailed;
-      
+
       // Retry if under limit
       if (_refreshAttempts < config.maxRefreshAttempts) {
         Timer(config.refreshRetryDelay, () => refresh(secretName));
@@ -277,13 +274,15 @@ class ExpirableSecret {
 
   /// Schedules automatic refresh if needed.
   void _scheduleRefreshIfNeeded() {
-    if (!config.autoRefresh || _refreshCallback == null || config.expiresAt == null) {
+    if (!config.autoRefresh ||
+        _refreshCallback == null ||
+        config.expiresAt == null) {
       return;
     }
 
     final refreshTime = config.expiresAt!.subtract(config.refreshThreshold);
     final now = DateTime.now();
-    
+
     if (refreshTime.isAfter(now)) {
       _refreshTimer?.cancel();
       _refreshTimer = Timer(refreshTime.difference(now), () {
@@ -312,9 +311,9 @@ class ExpirableSecret {
 /// Exception thrown when trying to access an expired secret.
 class SecretExpiredException implements Exception {
   final String message;
-  
+
   const SecretExpiredException(this.message);
-  
+
   @override
   String toString() => 'SecretExpiredException: $message';
 }

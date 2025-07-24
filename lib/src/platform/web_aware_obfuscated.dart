@@ -1,12 +1,11 @@
 /// Web-aware obfuscated values with platform-specific handling.
-/// 
+///
 /// This module provides obfuscated values that automatically handle
 /// web platform limitations and provide appropriate warnings.
 library;
 
 import 'dart:typed_data';
 
-import '../obfuscation/obfuscated.dart';
 import '../obfuscation/secret.dart';
 import 'platform_support.dart';
 
@@ -14,16 +13,16 @@ import 'platform_support.dart';
 class WebAwareConfig {
   /// Whether to show warnings on web platform.
   final bool showWebWarnings;
-  
+
   /// Whether to disable secrets on web platform.
   final bool disableSecretsOnWeb;
-  
+
   /// Whether to use fallback values on web platform.
   final bool useFallbackOnWeb;
-  
+
   /// Custom warning message for web platform.
   final String? customWebWarning;
-  
+
   /// Whether to log platform warnings.
   final bool logPlatformWarnings;
 
@@ -90,7 +89,7 @@ class WebAwareObfuscatedValue<T> implements ObfuscatedValue<T> {
   final T? _fallbackValue;
   final WebAwareConfig _config;
   final String _secretName;
-  
+
   static bool _hasShownWebWarning = false;
   static final List<String> _loggedWarnings = [];
 
@@ -140,7 +139,7 @@ class WebAwareObfuscatedValue<T> implements ObfuscatedValue<T> {
       if (_config.useFallbackOnWeb && _fallbackValue != null) {
         return _fallbackValue!;
       }
-      
+
       throw PlatformSecurityException(
         'Secrets are disabled on web platform for security reasons',
         ConfidentialPlatform.web,
@@ -158,14 +157,15 @@ class WebAwareObfuscatedValue<T> implements ObfuscatedValue<T> {
   }
 
   void _showWebWarning(PlatformSecurityInfo securityInfo) {
-    final warning = _config.customWebWarning ?? _buildDefaultWebWarning(securityInfo);
-    
+    final warning =
+        _config.customWebWarning ?? _buildDefaultWebWarning(securityInfo);
+
     if (_config.logPlatformWarnings) {
       print('⚠️  SECURITY WARNING: $warning');
       print('   Secret: $_secretName');
       print('   Platform: ${securityInfo.platform.name}');
       print('   Security Level: ${securityInfo.securityLevel.name}');
-      
+
       if (securityInfo.recommendations.isNotEmpty) {
         print('   Recommendations:');
         for (final rec in securityInfo.recommendations.take(3)) {
@@ -175,12 +175,15 @@ class WebAwareObfuscatedValue<T> implements ObfuscatedValue<T> {
     }
   }
 
-  void _logPlatformWarning(ConfidentialPlatform platform, PlatformSecurityInfo securityInfo) {
-    final warningKey = '${platform.name}_${_secretName}';
+  void _logPlatformWarning(
+    ConfidentialPlatform platform,
+    PlatformSecurityInfo securityInfo,
+  ) {
+    final warningKey = '${platform.name}_$_secretName';
     if (_loggedWarnings.contains(warningKey)) return;
-    
+
     _loggedWarnings.add(warningKey);
-    
+
     if (securityInfo.warnings.isNotEmpty) {
       print('⚠️  Platform Security Notice for $_secretName:');
       print('   Platform: ${platform.name}');
@@ -191,7 +194,7 @@ class WebAwareObfuscatedValue<T> implements ObfuscatedValue<T> {
 
   String _buildDefaultWebWarning(PlatformSecurityInfo securityInfo) {
     return 'Secrets on web platform are not secure and can be easily extracted. '
-           'Consider using server-side APIs for sensitive operations.';
+        'Consider using server-side APIs for sensitive operations.';
   }
 
   @override
@@ -344,10 +347,7 @@ extension ObfuscatedValueWebAwareExtension<T> on ObfuscatedValue<T> {
 
   /// Wraps this obfuscated value with web warnings enabled.
   WebAwareObfuscatedValue<T> withWebWarnings(String secretName) {
-    return webAware(
-      secretName,
-      config: WebAwareConfig.webWithWarnings(),
-    );
+    return webAware(secretName, config: WebAwareConfig.webWithWarnings());
   }
 
   /// Wraps this obfuscated value with web secrets disabled.
