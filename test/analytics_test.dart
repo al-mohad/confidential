@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:confidential/confidential.dart';
 import 'package:test/test.dart';
+import 'package:confidential/src/analytics/analytics_obfuscated.dart';
+import 'package:confidential/src/analytics/audit_logger.dart';
+import 'package:confidential/src/extensions/encryption_extensions.dart';
+import 'package:confidential/src/obfuscation/secret.dart';
 
 void main() {
   group('Analytics and Audit Logging Tests', () {

@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:test/test.dart';
-import 'package:confidential/confidential.dart';
+import 'package:confidential/src/obfuscation/encryption/encryption.dart';
+import 'package:confidential/src/obfuscation/encryption/key_management.dart';
+import 'package:confidential/src/obfuscation/encryption/rsa_encryption.dart';
+import 'package:confidential/src/obfuscation/secret.dart';
 
 void main() {
   group('Enhanced Encryption Tests', () {
@@ -14,10 +17,10 @@ void main() {
         keyDerivationFunction: 'PBKDF2',
         keyDerivationIterations: 10000, // Reduced for testing
       );
-      
+
       final keyManager = KeyManager(keyConfig);
       final algorithm = AesGcmEncryption(256, keyManager: keyManager);
-      
+
       final data = Uint8List.fromList(utf8.encode('Hello, Enhanced World!'));
       final nonce = 12345;
 
@@ -50,11 +53,13 @@ void main() {
         keyDerivationFunction: 'PBKDF2',
         keyDerivationIterations: 5000,
       );
-      
+
       final keyManager = KeyManager(keyConfig);
       final algorithm = ChaCha20Poly1305Encryption(keyManager: keyManager);
-      
-      final data = Uint8List.fromList(utf8.encode('ChaCha20 with Key Management'));
+
+      final data = Uint8List.fromList(
+        utf8.encode('ChaCha20 with Key Management'),
+      );
       final nonce = 98765;
 
       // Generate initial key
@@ -97,9 +102,9 @@ void main() {
         rotationIntervalDays: 1, // Very short for testing
         maxOldKeys: 2,
       );
-      
+
       final keyManager = KeyManager(keyConfig);
-      
+
       // Generate initial key
       final key1 = keyManager.generateNewKey(12345, 256);
       expect(key1.version, equals(1));
@@ -122,7 +127,7 @@ void main() {
         keyDerivationIterations: 1000,
         salt: 'test-salt-pbkdf2',
       );
-      
+
       final scryptConfig = KeyManagementConfig(
         keyDerivationFunction: 'SCRYPT',
         salt: 'test-salt-scrypt',
@@ -140,7 +145,10 @@ void main() {
 
     test('EncryptionFactory creates correct algorithms', () {
       expect(EncryptionFactory.create('aes-256-gcm'), isA<AesGcmEncryption>());
-      expect(EncryptionFactory.create('chacha20-poly1305'), isA<ChaCha20Poly1305Encryption>());
+      expect(
+        EncryptionFactory.create('chacha20-poly1305'),
+        isA<ChaCha20Poly1305Encryption>(),
+      );
       expect(EncryptionFactory.create('rsa-2048'), isA<RsaEncryption>());
       expect(EncryptionFactory.create('rsa-4096-sha256'), isA<RsaEncryption>());
     });
@@ -148,15 +156,18 @@ void main() {
     test('EncryptionFactory with key manager', () {
       final keyConfig = KeyManagementConfig();
       final keyManager = KeyManager(keyConfig);
-      
-      final aes = EncryptionFactory.create('aes-256-gcm', keyManager: keyManager);
+
+      final aes = EncryptionFactory.create(
+        'aes-256-gcm',
+        keyManager: keyManager,
+      );
       expect(aes, isA<AesGcmEncryption>());
       expect((aes as AesGcmEncryption).keyManager, equals(keyManager));
     });
 
     test('Supported algorithms list includes new algorithms', () {
       final supported = EncryptionFactory.supportedAlgorithms;
-      
+
       expect(supported, contains('aes-256-gcm'));
       expect(supported, contains('chacha20-poly1305'));
       expect(supported, contains('rsa-2048'));
@@ -181,10 +192,19 @@ void main() {
       final restored = KeyManagementConfig.fromMap(map);
 
       expect(restored.enableRotation, equals(config.enableRotation));
-      expect(restored.rotationIntervalDays, equals(config.rotationIntervalDays));
+      expect(
+        restored.rotationIntervalDays,
+        equals(config.rotationIntervalDays),
+      );
       expect(restored.maxOldKeys, equals(config.maxOldKeys));
-      expect(restored.keyDerivationFunction, equals(config.keyDerivationFunction));
-      expect(restored.keyDerivationIterations, equals(config.keyDerivationIterations));
+      expect(
+        restored.keyDerivationFunction,
+        equals(config.keyDerivationFunction),
+      );
+      expect(
+        restored.keyDerivationIterations,
+        equals(config.keyDerivationIterations),
+      );
       expect(restored.salt, equals(config.salt));
     });
 
@@ -210,16 +230,16 @@ void main() {
     test('Key manager export/import', () {
       final config = KeyManagementConfig(enableRotation: true);
       final manager = KeyManager(config);
-      
+
       // Generate some keys
       manager.generateNewKey(1, 256);
       manager.generateNewKey(2, 256);
-      
+
       // Export and import
       final exported = manager.exportKeys();
       final newManager = KeyManager(config);
       newManager.importKeys(exported);
-      
+
       // Verify keys are preserved
       expect(newManager.getKeyByVersion(1), isNotNull);
       expect(newManager.getKeyByVersion(2), isNotNull);

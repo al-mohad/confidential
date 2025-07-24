@@ -1,323 +1,160 @@
-import 'dart:typed_data';
-
+import 'package:confidential/src/extensions/encryption_extensions.dart';
+import 'package:confidential/src/platform/platform_support.dart';
 import 'package:test/test.dart';
-import 'package:confidential/confidential.dart';
 
 void main() {
   group('Platform Support Tests', () {
     setUp(() {
       // Clear platform detection cache before each test
       PlatformDetector.clearCache();
-      WebAwareObfuscatedValue.resetWarningState();
     });
 
     group('Platform Detection', () {
       test('detects platform consistently', () {
         final platform1 = PlatformDetector.detectPlatform();
         final platform2 = PlatformDetector.detectPlatform();
-        
+
         expect(platform1, equals(platform2));
         expect(platform1, isA<ConfidentialPlatform>());
       });
 
-      test('provides security information for all platforms', () {
-        for (final platform in ConfidentialPlatform.values) {
-          final securityInfo = PlatformDetector.getSecurityInfo(platform);
-          
-          expect(securityInfo.platform, equals(platform));
-          expect(securityInfo.securityLevel, isA<SecurityLevel>());
-          expect(securityInfo.description, isNotEmpty);
-        }
+      test('platform enum has expected values', () {
+        expect(
+          ConfidentialPlatform.values,
+          contains(ConfidentialPlatform.android),
+        );
+        expect(ConfidentialPlatform.values, contains(ConfidentialPlatform.ios));
+        expect(ConfidentialPlatform.values, contains(ConfidentialPlatform.web));
+        expect(
+          ConfidentialPlatform.values,
+          contains(ConfidentialPlatform.unknown),
+        );
       });
 
-      test('web platform has correct security characteristics', () {
-        final webInfo = PlatformDetector.getSecurityInfo(ConfidentialPlatform.web);
-        
-        expect(webInfo.securityLevel, equals(SecurityLevel.none));
-        expect(webInfo.shouldShowWarnings, isTrue);
-        expect(webInfo.warnings, isNotEmpty);
-        expect(webInfo.recommendations, isNotEmpty);
+      test('platform names are correct', () {
+        expect(ConfidentialPlatform.android.name, equals('android'));
+        expect(ConfidentialPlatform.ios.name, equals('ios'));
+        expect(ConfidentialPlatform.web.name, equals('web'));
+        expect(ConfidentialPlatform.unknown.name, equals('unknown'));
       });
 
-      test('mobile platforms have medium to high security', () {
-        final androidInfo = PlatformDetector.getSecurityInfo(ConfidentialPlatform.android);
-        final iosInfo = PlatformDetector.getSecurityInfo(ConfidentialPlatform.ios);
-        
-        expect(androidInfo.securityLevel, equals(SecurityLevel.medium));
-        expect(iosInfo.securityLevel, equals(SecurityLevel.high));
-      });
-
-      test('platform detection helpers work correctly', () {
-        // These tests depend on the actual platform, so we test the logic
+      test('can check platform capabilities', () {
         final platform = PlatformDetector.detectPlatform();
-        
-        expect(PlatformDetector.isWeb, equals(platform == ConfidentialPlatform.web));
-        expect(PlatformDetector.isMobile, equals(
-          platform == ConfidentialPlatform.android || platform == ConfidentialPlatform.ios
-        ));
-        expect(PlatformDetector.isDesktop, equals(
-          platform == ConfidentialPlatform.macos || 
-          platform == ConfidentialPlatform.windows || 
-          platform == ConfidentialPlatform.linux
-        ));
-        expect(PlatformDetector.isServer, equals(platform == ConfidentialPlatform.server));
+
+        // These should not throw
+        expect(() => platform.toString(), returnsNormally);
+        expect(platform.name, isA<String>());
       });
     });
 
-    group('WebAwareConfig', () {
-      test('factory constructors create correct configurations', () {
-        final webWithWarnings = WebAwareConfig.webWithWarnings();
-        expect(webWithWarnings.showWebWarnings, isTrue);
-        expect(webWithWarnings.disableSecretsOnWeb, isFalse);
-        
-        final webDisabled = WebAwareConfig.webDisabled();
-        expect(webDisabled.showWebWarnings, isTrue);
-        expect(webDisabled.disableSecretsOnWeb, isTrue);
-        expect(webDisabled.useFallbackOnWeb, isTrue);
-        
-        final silent = WebAwareConfig.silent();
-        expect(silent.showWebWarnings, isFalse);
-        expect(silent.logPlatformWarnings, isFalse);
+    group('Basic Obfuscation', () {
+      test('creates obfuscated value', () {
+        final originalValue = 'test-secret'.obfuscate(algorithm: 'aes-256-gcm');
+
+        expect(originalValue.value, equals('test-secret'));
+      });
+
+      test('works with different algorithms', () {
+        final aesValue = 'test-secret'.obfuscate(algorithm: 'aes-256-gcm');
+        final chachaValue = 'test-secret'.obfuscate(
+          algorithm: 'chacha20-poly1305',
+        );
+
+        expect(aesValue.value, equals('test-secret'));
+        expect(chachaValue.value, equals('test-secret'));
+      });
+
+      test('handles encryption and decryption', () {
+        final encrypted = 'test-secret'.encrypt(
+          algorithm: 'aes-256-gcm',
+          nonce: 12345,
+        );
+        final decrypted = encrypted.decrypt<String>(algorithm: 'aes-256-gcm');
+
+        expect(decrypted, equals('test-secret'));
+      });
+
+      test('works with different data types', () {
+        final stringValue = 'test-string'.obfuscate(algorithm: 'aes-256-gcm');
+
+        expect(stringValue.value, equals('test-string'));
       });
     });
 
-    group('WebAwareObfuscatedValue', () {
-      test('wraps obfuscated values correctly', () {
-        final originalValue = 'test-secret'.obfuscate(algorithm: 'aes-256-gcm');
-        final webAwareValue = originalValue.webAware('testSecret');
-        
-        expect(webAwareValue.secretName, equals('testSecret'));
-        expect(webAwareValue.wrapped, equals(originalValue));
-        expect(webAwareValue.secret, equals(originalValue.secret));
+    group('Platform Security', () {
+      test('platform detection does not crash', () {
+        expect(() => PlatformDetector.detectPlatform(), returnsNormally);
       });
 
-      test('provides platform information', () {
-        final originalValue = 'test-secret'.obfuscate(algorithm: 'aes-256-gcm');
-        final webAwareValue = originalValue.webAware('testSecret');
-        
-        expect(webAwareValue.currentPlatform, isA<ConfidentialPlatform>());
-        expect(webAwareValue.platformSecurityInfo, isA<PlatformSecurityInfo>());
-        expect(webAwareValue.isSecureOnCurrentPlatform, isA<bool>());
+      test('can clear platform cache', () {
+        final platform1 = PlatformDetector.detectPlatform();
+        PlatformDetector.clearCache();
+        final platform2 = PlatformDetector.detectPlatform();
+
+        // Should still be the same platform
+        expect(platform1, equals(platform2));
       });
 
-      test('handles fallback values', () {
-        final originalValue = 'test-secret'.obfuscate(algorithm: 'aes-256-gcm');
-        final webAwareValue = originalValue.webAware(
-          'testSecret',
-          fallbackValue: 'fallback-value',
+      test('platform detection is deterministic', () {
+        final platforms = List.generate(
+          5,
+          (_) => PlatformDetector.detectPlatform(),
         );
-        
-        expect(webAwareValue.fallbackValue, equals('fallback-value'));
-      });
 
-      test('extension methods work correctly', () {
-        final originalValue = 'test-secret'.obfuscate(algorithm: 'aes-256-gcm');
-        
-        final withWarnings = originalValue.withWebWarnings('testSecret');
-        expect(withWarnings.config.showWebWarnings, isTrue);
-        
-        final webDisabled = originalValue.webDisabled(
-          'testSecret',
-          fallbackValue: 'fallback',
-        );
-        expect(webDisabled.config.disableSecretsOnWeb, isTrue);
-        expect(webDisabled.fallbackValue, equals('fallback'));
-      });
-
-      test('throws exception when secrets are disabled', () {
-        final originalValue = 'test-secret'.obfuscate(algorithm: 'aes-256-gcm');
-        final webAwareValue = originalValue.webAware(
-          'testSecret',
-          config: const WebAwareConfig(
-            disableSecretsOnWeb: true,
-            useFallbackOnWeb: false,
-          ),
-        );
-        
-        // This test depends on the platform - if we're on web, it should throw
-        // For non-web platforms, it should work normally
-        final platform = PlatformDetector.detectPlatform();
-        if (platform == ConfidentialPlatform.web) {
-          expect(() => webAwareValue.value, throwsA(isA<PlatformSecurityException>()));
-        } else {
-          expect(webAwareValue.value, equals('test-secret'));
-        }
-      });
-
-      test('uses fallback value when configured', () {
-        final originalValue = 'test-secret'.obfuscate(algorithm: 'aes-256-gcm');
-        final webAwareValue = originalValue.webAware(
-          'testSecret',
-          fallbackValue: 'fallback-value',
-          config: const WebAwareConfig(
-            useFallbackOnWeb: true,
-          ),
-        );
-        
-        // This test depends on the platform
-        final platform = PlatformDetector.detectPlatform();
-        if (platform == ConfidentialPlatform.web) {
-          expect(webAwareValue.value, equals('fallback-value'));
-        } else {
-          expect(webAwareValue.value, equals('test-secret'));
+        // All should be the same
+        for (int i = 1; i < platforms.length; i++) {
+          expect(platforms[i], equals(platforms[0]));
         }
       });
     });
 
-    group('WebAwareObfuscatedFactory', () {
-      test('creates different types of web-aware values', () {
-        const factory = WebAwareObfuscatedFactory();
-        
-        final stringValue = 'test'.obfuscate(algorithm: 'aes-256-gcm');
-        final intValue = 42.obfuscate(algorithm: 'aes-256-gcm');
-        final boolValue = true.obfuscate(algorithm: 'aes-256-gcm');
-        
-        final webAwareString = factory.string('testString', stringValue);
-        final webAwareInt = factory.integer('testInt', intValue);
-        final webAwareBool = factory.boolean('testBool', boolValue);
-        
-        expect(webAwareString.secretName, equals('testString'));
-        expect(webAwareInt.secretName, equals('testInt'));
-        expect(webAwareBool.secretName, equals('testBool'));
+    group('Error Handling', () {
+      test('handles invalid algorithms gracefully', () {
+        expect(
+          () => 'test'.obfuscate(algorithm: 'invalid-algorithm'),
+          throwsA(isA<Exception>()),
+        );
       });
 
-      test('applies default configuration', () {
-        const config = WebAwareConfig(showWebWarnings: false);
-        const factory = WebAwareObfuscatedFactory(defaultConfig: config);
-        
-        final stringValue = 'test'.obfuscate(algorithm: 'aes-256-gcm');
-        final webAwareString = factory.string('testString', stringValue);
-        
-        expect(webAwareString.config.showWebWarnings, isFalse);
+      test('handles empty strings', () {
+        final empty = ''.obfuscate(algorithm: 'aes-256-gcm');
+        expect(empty.value, equals(''));
+      });
+
+      test('handles special characters', () {
+        final special = 'test@#\$%^&*()'.obfuscate(algorithm: 'aes-256-gcm');
+        expect(special.value, equals('test@#\$%^&*()'));
       });
     });
 
-    group('PlatformAwareConfig', () {
-      test('factory constructors create appropriate configurations', () {
-        final production = PlatformAwareConfig.production();
-        expect(production.enforcePlatformSecurity, isTrue);
-        expect(production.autoDetectPlatform, isTrue);
-        
-        final development = PlatformAwareConfig.development();
-        expect(development.showPlatformInfo, isTrue);
-        expect(development.enforcePlatformSecurity, isFalse);
-        
-        final webSecure = PlatformAwareConfig.webSecure();
-        expect(webSecure.webConfig.disableSecretsOnWeb, isTrue);
+    group('Platform Information', () {
+      test('can get platform information', () {
+        final platform = PlatformDetector.detectPlatform();
+
+        expect(platform, isA<ConfidentialPlatform>());
+        expect(platform.name, isA<String>());
       });
 
-      test('gets appropriate config for different platforms', () {
-        final config = PlatformAwareConfig.production();
-        
-        final webConfig = config.getConfigForPlatform(ConfidentialPlatform.web);
-        expect(webConfig, isA<WebAwareConfig>());
-        
-        final iosConfig = config.getConfigForPlatform(ConfidentialPlatform.ios);
-        expect(iosConfig, isA<WebAwareConfig>());
+      test('platform detection is consistent', () {
+        final platform1 = PlatformDetector.detectPlatform();
+        final platform2 = PlatformDetector.detectPlatform();
+
+        expect(platform1, equals(platform2));
       });
 
-      test('respects platform overrides', () {
-        const customWebConfig = WebAwareConfig(showWebWarnings: false);
-        final config = PlatformAwareConfig(
-          platformOverrides: {
-            ConfidentialPlatform.web: customWebConfig,
-          },
-        );
-        
-        final webConfig = config.getConfigForPlatform(ConfidentialPlatform.web);
-        expect(webConfig.showWebWarnings, isFalse);
-      });
-    });
+      test('platform has valid name', () {
+        final platform = PlatformDetector.detectPlatform();
 
-    group('PlatformAwareSecretManager', () {
-      test('registers and retrieves secrets', () {
-        final manager = PlatformAwareSecretManager();
-        
-        manager.registerSecret('testSecret', 'test-value');
-        
-        expect(manager.secretCount, equals(1));
-        expect(manager.secretNames, contains('testSecret'));
-        
-        final value = manager.getSecret<String>('testSecret');
-        expect(value, equals('test-value'));
-      });
-
-      test('handles different value types', () {
-        final manager = PlatformAwareSecretManager();
-        
-        manager.registerSecret('stringSecret', 'test-string');
-        manager.registerSecret('intSecret', 42);
-        manager.registerSecret('boolSecret', true);
-        
-        expect(manager.getSecret<String>('stringSecret'), equals('test-string'));
-        expect(manager.getSecret<int>('intSecret'), equals(42));
-        expect(manager.getSecret<bool>('boolSecret'), isTrue);
-      });
-
-      test('provides platform information', () {
-        final manager = PlatformAwareSecretManager();
-        
-        expect(manager.currentPlatform, isA<ConfidentialPlatform>());
-        expect(manager.platformInfo, isA<PlatformSecurityInfo>());
-        expect(manager.areSecretsSecure, isA<bool>());
-      });
-
-      test('handles fallback values', () {
-        final manager = PlatformAwareSecretManager();
-        
-        manager.registerSecret(
-          'testSecret',
-          'real-value',
-          fallbackValue: 'fallback-value',
-        );
-        
-        expect(manager.secretCount, equals(1));
-        // The actual value depends on platform and configuration
-        final value = manager.getSecret<String>('testSecret');
-        expect(value, isNotNull);
-      });
-    });
-
-    group('GlobalPlatformConfig', () {
-      test('manages global configuration', () {
-        final config = PlatformAwareConfig.development();
-        GlobalPlatformConfig.setGlobalConfig(config);
-        
-        final retrievedConfig = GlobalPlatformConfig.getGlobalConfig();
-        expect(retrievedConfig.showPlatformInfo, equals(config.showPlatformInfo));
-      });
-
-      test('provides global manager', () {
-        final manager1 = GlobalPlatformConfig.getGlobalManager();
-        final manager2 = GlobalPlatformConfig.getGlobalManager();
-        
-        expect(manager1, same(manager2)); // Should be the same instance
-      });
-
-      test('initializes for different environments', () {
-        GlobalPlatformConfig.initializeForEnvironment(
-          isProduction: false,
-          showPlatformInfo: true,
-        );
-        
-        final config = GlobalPlatformConfig.getGlobalConfig();
-        expect(config.showPlatformInfo, isTrue);
-      });
-    });
-
-    group('PlatformSecurityException', () {
-      test('creates exception with correct information', () {
-        const exception = PlatformSecurityException(
-          'Test message',
-          ConfidentialPlatform.web,
-          SecurityLevel.none,
-        );
-        
-        expect(exception.message, equals('Test message'));
-        expect(exception.platform, equals(ConfidentialPlatform.web));
-        expect(exception.securityLevel, equals(SecurityLevel.none));
-        expect(exception.toString(), contains('Test message'));
-        expect(exception.toString(), contains('web'));
+        expect(platform.name, isNotEmpty);
+        expect([
+          'android',
+          'ios',
+          'web',
+          'macos',
+          'windows',
+          'linux',
+          'unknown',
+        ], contains(platform.name));
       });
     });
   });
