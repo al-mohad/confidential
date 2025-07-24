@@ -4,8 +4,6 @@
 /// and security warnings for different deployment environments.
 library;
 
-import 'dart:async';
-
 // Conditional imports for platform detection
 import 'platform_web.dart' if (dart.library.io) 'platform_io.dart' as platform_impl;
 

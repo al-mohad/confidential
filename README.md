@@ -21,6 +21,7 @@ This tool aims to provide an elegant and maintainable solution to the above prob
 ## ✨ Features
 
 - **🔐 Multi-Algorithm Obfuscation**: Supports AES-256-GCM, ChaCha20-Poly1305, XOR, and compression
+- **🔒 Hardware-Backed Security**: Platform-specific secure storage (iOS Keychain, Android Keystore) with biometric authentication
 - **🎯 Type-Safe API**: Strongly typed obfuscated values with compile-time safety
 - **🔄 Asynchronous Loading**: Non-blocking secret loading with caching and retry mechanisms
 - **📊 Analytics & Audit Logging**: Comprehensive access tracking with suspicious activity detection
@@ -285,6 +286,39 @@ algorithm:
   - encrypt using aes-256-gcm
   - shuffle
 ```
+
+### Hardware-Backed Security
+
+Dart Confidential supports hardware-backed key storage for maximum security on supported platforms:
+
+```dart
+import 'package:confidential/src/platform/hardware_key_manager.dart';
+
+// Create hardware key manager with maximum security
+final keyManager = HardwareKeyManager.maxSecurity();
+
+// Check hardware security level
+final securityLevel = await keyManager.getSecurityLevel();
+print('Security level: ${securityLevel.level}'); // hardware, software, or unknown
+
+// Use hardware-backed obfuscated values
+final hardwareSecret = await keyManager.createObfuscatedValue(
+  'sensitive-api-key',
+  algorithm: 'aes-256-gcm',
+);
+```
+
+**Platform Support:**
+- 🍎 **iOS**: Secure Enclave and Keychain with biometric authentication
+- 🤖 **Android**: Android Keystore with hardware security module support
+- 🖥️ **Desktop**: Software fallback with enhanced security
+- 🌐 **Web**: Software-only with security warnings
+
+**Features:**
+- 🔒 **Biometric Authentication**: Touch ID, Face ID, and fingerprint support
+- 🛡️ **Hardware Security Module**: Uses dedicated security chips when available
+- 🔄 **Automatic Fallback**: Gracefully falls back to software storage
+- 📱 **Platform Detection**: Automatically detects and uses best available security
 
 ## 🧼 Enhanced API Ergonomics
 

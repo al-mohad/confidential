@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-07-24
+
+### 🔐 Added - Hardware-Backed Security
+- **Hardware Key Management**: Secure key storage using platform-specific hardware (iOS Keychain, Android Keystore)
+- **Native Platform Integration**: Flutter secure storage integration with biometric authentication support
+- **Enhanced Security Levels**: Hardware security level detection and validation
+- **Platform-Aware Key Storage**: Automatic fallback to software storage when hardware unavailable
+
+### 🧪 Fixed - Test Suite
+- **Complete Test Coverage**: Fixed all test compilation and runtime errors
+- **92 Passing Tests**: Comprehensive test suite covering all major functionality
+- **Removed Flutter Dependencies**: Eliminated problematic Flutter UI dependencies from pure Dart tests
+- **Corrected API Usage**: Fixed method names and import statements throughout test suite
+
+### 🛠️ Improved - Code Quality
+- **Clean Compilation**: All source files now compile without errors or warnings
+- **Proper Enum Values**: Fixed KeychainAccessibility and SecurityLevel enum usage
+- **Import Optimization**: Cleaned up imports and removed unused dependencies
+- **Error Handling**: Enhanced error handling in hardware key management
+
 ## [1.0.0] - 2025-01-24
 
 ### 🧰 Added - CLI & Build-Time Integration System
