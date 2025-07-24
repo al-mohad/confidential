@@ -3,20 +3,18 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
-import '../obfuscation/secret.dart';
 import '../obfuscation/encryption/encryption.dart';
-import 'expirable_secret.dart';
+import '../obfuscation/secret.dart';
 
 /// Base class for expirable obfuscated values.
 abstract class ExpirableObfuscatedValue<T> {
   /// The expirable secret container.
   ExpirableSecret _expirableSecret;
-  
+
   /// The deobfuscation function.
   final DeobfuscationFunction<T> deobfuscate;
-  
+
   /// Secret name for refresh callbacks.
   final String secretName;
 
@@ -83,28 +81,29 @@ class ExpirableObfuscatedString extends ExpirableObfuscatedValue<String> {
     required super.secretName,
     required String algorithm,
   }) : super(
-          deobfuscate: (data, nonce) {
-            final encryptionAlgorithm = EncryptionFactory.create(algorithm);
-            final decrypted = encryptionAlgorithm.deobfuscate(data, nonce);
-            return utf8.decode(decrypted);
-          },
-        );
+         deobfuscate: (data, nonce) {
+           final encryptionAlgorithm = EncryptionFactory.create(algorithm);
+           final decrypted = encryptionAlgorithm.deobfuscate(data, nonce);
+           return utf8.decode(decrypted);
+         },
+       );
 }
 
 /// Expirable obfuscated string list value.
-class ExpirableObfuscatedStringList extends ExpirableObfuscatedValue<List<String>> {
+class ExpirableObfuscatedStringList
+    extends ExpirableObfuscatedValue<List<String>> {
   ExpirableObfuscatedStringList({
     required super.expirableSecret,
     required super.secretName,
     required String algorithm,
   }) : super(
-          deobfuscate: (data, nonce) {
-            final encryptionAlgorithm = EncryptionFactory.create(algorithm);
-            final decrypted = encryptionAlgorithm.deobfuscate(data, nonce);
-            final json = utf8.decode(decrypted);
-            return (jsonDecode(json) as List).cast<String>();
-          },
-        );
+         deobfuscate: (data, nonce) {
+           final encryptionAlgorithm = EncryptionFactory.create(algorithm);
+           final decrypted = encryptionAlgorithm.deobfuscate(data, nonce);
+           final json = utf8.decode(decrypted);
+           return (jsonDecode(json) as List).cast<String>();
+         },
+       );
 }
 
 /// Expirable obfuscated integer value.
@@ -114,13 +113,13 @@ class ExpirableObfuscatedInt extends ExpirableObfuscatedValue<int> {
     required super.secretName,
     required String algorithm,
   }) : super(
-          deobfuscate: (data, nonce) {
-            final encryptionAlgorithm = EncryptionFactory.create(algorithm);
-            final decrypted = encryptionAlgorithm.deobfuscate(data, nonce);
-            final json = utf8.decode(decrypted);
-            return jsonDecode(json) as int;
-          },
-        );
+         deobfuscate: (data, nonce) {
+           final encryptionAlgorithm = EncryptionFactory.create(algorithm);
+           final decrypted = encryptionAlgorithm.deobfuscate(data, nonce);
+           final json = utf8.decode(decrypted);
+           return jsonDecode(json) as int;
+         },
+       );
 }
 
 /// Expirable obfuscated double value.
@@ -130,13 +129,13 @@ class ExpirableObfuscatedDouble extends ExpirableObfuscatedValue<double> {
     required super.secretName,
     required String algorithm,
   }) : super(
-          deobfuscate: (data, nonce) {
-            final encryptionAlgorithm = EncryptionFactory.create(algorithm);
-            final decrypted = encryptionAlgorithm.deobfuscate(data, nonce);
-            final json = utf8.decode(decrypted);
-            return jsonDecode(json) as double;
-          },
-        );
+         deobfuscate: (data, nonce) {
+           final encryptionAlgorithm = EncryptionFactory.create(algorithm);
+           final decrypted = encryptionAlgorithm.deobfuscate(data, nonce);
+           final json = utf8.decode(decrypted);
+           return jsonDecode(json) as double;
+         },
+       );
 }
 
 /// Expirable obfuscated boolean value.
@@ -146,13 +145,13 @@ class ExpirableObfuscatedBool extends ExpirableObfuscatedValue<bool> {
     required super.secretName,
     required String algorithm,
   }) : super(
-          deobfuscate: (data, nonce) {
-            final encryptionAlgorithm = EncryptionFactory.create(algorithm);
-            final decrypted = encryptionAlgorithm.deobfuscate(data, nonce);
-            final json = utf8.decode(decrypted);
-            return jsonDecode(json) as bool;
-          },
-        );
+         deobfuscate: (data, nonce) {
+           final encryptionAlgorithm = EncryptionFactory.create(algorithm);
+           final decrypted = encryptionAlgorithm.deobfuscate(data, nonce);
+           final json = utf8.decode(decrypted);
+           return jsonDecode(json) as bool;
+         },
+       );
 }
 
 /// Generic expirable obfuscated value.

@@ -269,7 +269,6 @@ class AnalyticsReporter {
   AnalyticsReport _generateReport() {
     final now = DateTime.now();
     final stats = _logger.getAllStats();
-    final recentLogs = _logger.getRecentLogs(limit: 100);
     final suspiciousEvents = _logger.getSuspiciousEvents(limit: 50);
 
     final report = AnalyticsReport(
