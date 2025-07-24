@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2025-01-24
+
+### 📱 Added - Platform-Specific Support & Web Handling
+- **Platform Detection**: Automatic detection of web, mobile, desktop, and server environments
+- **Web Security Warnings**: Clear warnings about JavaScript compilation limitations and security risks
+- **Web-Aware Obfuscated Values**: Smart handling with fallback strategies for web platform
+- **Platform-Specific Security Assessment**: Detailed security levels and recommendations for each platform
+- **Conditional Platform Imports**: Proper web vs native environment handling using dart:io conditionally
+- **Global Platform Configuration**: Environment-specific settings with production/development presets
+- **Fallback Strategies**: Graceful degradation for insecure environments with configurable options
+
+### 🛡️ Security Features
+- Platform-specific security levels (Web: none, iOS: high, Android: medium, etc.)
+- Comprehensive security warnings and recommendations for each platform
+- Web fallback patterns: public keys, server-side proxy, environment-specific values
+- Configurable secret disabling on insecure platforms
+
 ## [0.8.0] - 2025-01-24
 
 ### 📊 Added - Analytics & Audit Logging

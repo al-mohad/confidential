@@ -35,6 +35,11 @@ export 'src/grouping/secret_groups.dart';
 export 'src/analytics/audit_logger.dart';
 export 'src/analytics/analytics_obfuscated.dart';
 
+// Platform-specific support and web handling
+export 'src/platform/platform_support.dart';
+export 'src/platform/web_aware_obfuscated.dart';
+export 'src/platform/platform_config.dart';
+
 // Popular package integrations
 export 'src/integrations/dio_integration.dart';
 export 'src/integrations/provider_integration.dart';
